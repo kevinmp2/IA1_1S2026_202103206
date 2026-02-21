@@ -1,0 +1,22 @@
+# Dependencias del Proyecto MediLogic
+
+# Motor Prolog
+pyswip==0.3.3
+
+# Backend Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# RPA
+pyautogui>=0.9.54
+pillow>=10.3.0
+
+# Generación de PDFs
+reportlab>=4.0.9
+fpdf==1.7.2
+
+# Envío de correos (para RPA)
+python-dotenv==1.0.0
+
+# Utilidades
+python-dateutil==2.8.2

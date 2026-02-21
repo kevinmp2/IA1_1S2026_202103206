@@ -1,0 +1,50 @@
+ENFERMEDAD
+ID: e9
+Nombre: Neumonía Atípica
+Descripcion: Infección pulmonar causada por bacterias atípicas como Mycoplasma pneumoniae
+Sistema: respiratorio
+Tipo: bacterial
+Gravedad: grave
+Sintomas: s1,s2,s15
+Medicamentos_Contraindicados: m2
+---
+ENFERMEDAD
+ID: e10
+Nombre: Gastritis Aguda
+Descripcion: Inflamación repentina del revestimiento del estómago
+Sistema: digestivo
+Tipo: general
+Gravedad: moderada
+Sintomas: s6,s9
+Medicamentos_Contraindicados: m2
+---
+ENFERMEDAD
+ID: e11
+Nombre: Arritmia Cardíaca
+Descripcion: Alteración del ritmo cardíaco normal
+Sistema: cardiovascular
+Tipo: cronico
+Gravedad: grave
+Sintomas: s11,s14
+Medicamentos_Contraindicados: m1,m5
+---
+ENFERMEDAD
+ID: e12
+Nombre: Bronquitis Aguda
+Descripcion: Inflamación de los bronquios que transportan aire a los pulmones
+Sistema: respiratorio
+Tipo: viral
+Gravedad: moderada
+Sintomas: s1,s2,s5
+Medicamentos_Contraindicados: ninguno
+---
+ENFERMEDAD
+ID: e13
+Nombre: Síndrome de Intestino Irritable
+Descripcion: Trastorno funcional del aparato digestivo
+Sistema: digestivo
+Tipo: cronico
+Gravedad: leve
+Sintomas: s6,s9
+Medicamentos_Contraindicados: m2,m6
+---

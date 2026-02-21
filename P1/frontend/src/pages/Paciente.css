@@ -1,0 +1,191 @@
+.paciente-page {
+  min-height: calc(100vh - 80px);
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--dark-gray);
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.paciente-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+@media (max-width: 1024px) {
+  .paciente-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sistema-group {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+}
+
+.sistema-title {
+  color: var(--primary-color);
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--secondary-color);
+}
+
+.sintoma-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: white;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.sintoma-item:hover {
+  background-color: #f8f9fa;
+}
+
+.severidad-select {
+  min-width: 150px;
+}
+
+.severidad-select select {
+  padding: 5px 10px;
+}
+
+.acciones {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.acciones button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.diagnosticos-list {
+  margin: 20px 0;
+}
+
+.diagnostico-item {
+  background-color: var(--light-gray);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border-left: 4px solid var(--secondary-color);
+}
+
+.diagnostico-item h3 {
+  color: var(--primary-color);
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.diagnostico-item p {
+  margin-bottom: 8px;
+  color: var(--dark-gray);
+}
+
+.diagnostico-item ul {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.diagnostico-item li {
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+.diagnostico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.diagnostico-header h3 {
+  margin: 0;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-leve {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-moderada {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.badge-grave {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.medicamentos-section {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.medicamentos-section strong {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+.efectividad {
+  color: var(--secondary-color);
+  font-size: 14px;
+  margin-left: 5px;
+}
+
+.no-diagnosticos {
+  text-align: center;
+  color: var(--dark-gray);
+  padding: 30px;
+  font-size: 16px;
+}
+
+.placeholder-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  color: var(--dark-gray);
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+}
+
+.historial-count {
+  color: var(--dark-gray);
+  text-align: center;
+  font-size: 16px;
+}
