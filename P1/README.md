@@ -157,7 +157,7 @@ npm run dev
 ```
    Frontend: http://localhost:3000
 
-### 🚀 Modo Producción
+### Modo Producción
 
 **Backend:**
 ```bash
@@ -172,12 +172,6 @@ npm run build
 # Archivos compilados en: frontend/dist/
 ```
 
-Servir archivos estáticos:
-```bash
-cd frontend
-npm run preview
-# O usar cualquier servidor web para servir dist/
-```
 
 ## Uso de la Aplicación
 
