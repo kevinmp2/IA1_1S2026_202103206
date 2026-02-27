@@ -138,29 +138,8 @@ npm --version
 
 ## Ejecutar la Aplicación
 
-### ⚡ Inicio Rápido (Recomendado)
 
-**Windows:**
-```bash
-# Terminal 1
-start-backend.bat
-
-# Terminal 2
-start-frontend.bat
-```
-
-**Linux/Mac:**
-```bash
-# Terminal 1
-chmod +x start-backend.sh
-./start-backend.sh
-
-# Terminal 2
-chmod +x start-frontend.sh
-./start-frontend.sh
-```
-
-### 📋 Inicio Manual
+### Inicio Manual
 
 **Terminal 1 - Backend:**
 ```bash
@@ -168,7 +147,7 @@ chmod +x start-frontend.sh
 cd backend
 python app.py
 ```
-✅ Backend: http://localhost:5000
+   Backend: http://localhost:5000
 
 **Terminal 2 - Frontend:**
 ```bash
@@ -176,7 +155,7 @@ python app.py
 cd frontend
 npm run dev
 ```
-✅ Frontend: http://localhost:3000
+   Frontend: http://localhost:3000
 
 ### 🚀 Modo Producción
 
@@ -200,7 +179,7 @@ npm run preview
 # O usar cualquier servidor web para servir dist/
 ```
 
-## 💻 Uso de la Aplicación
+## Uso de la Aplicación
 
 1. **Abrir navegador** en http://localhost:3000
 2. **Módulo Paciente**: 
@@ -241,13 +220,10 @@ npm run preview
 - Envío de notificaciones por correo
 
 ## Autor
-- Nombre: [Tu Nombre]
-- Carnet: [Tu Carnet]
+- Nombre: Kewin Maslovy Patzan
+- Carnet: 202103206
 - Curso: Inteligencia Artificial 1 - 1S2026
 
 ## Licencia
-MIT License - Ver archivo LICENSE para más detalles
+MIT License - ...
 
-## Colaboradores
-- roberto1206
-- ixchop98

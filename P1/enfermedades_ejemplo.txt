@@ -1,0 +1,30 @@
+ENFERMEDAD
+ID: e9
+Nombre: Neumonía Atípica
+Descripcion: Infección pulmonar causada por agentes atípicos como Mycoplasma pneumoniae
+Sistema: respiratorio
+Tipo: bacterial
+Gravedad: grave
+Sintomas: s1,s2,s15,s5
+Medicamentos_Contraindicados: m2
+---
+ENFERMEDAD
+ID: e10
+Nombre: Gastritis Aguda
+Descripcion: Inflamación súbita del revestimiento del estómago
+Sistema: digestivo
+Tipo: general
+Gravedad: moderada
+Sintomas: s6,s9,s8
+Medicamentos_Contraindicados: m2
+---
+ENFERMEDAD
+ID: e11
+Nombre: Sinusitis
+Descripcion: Inflamación de los senos paranasales
+Sistema: respiratorio
+Tipo: bacterial
+Gravedad: leve
+Sintomas: s3,s10,s4,s1
+Medicamentos_Contraindicados: 
+---

@@ -132,12 +132,26 @@ function Administrador() {
 
     setLoading(true);
     try {
-      const response = await procesarRPA({ archivo_contenido: archivoRPA });
+      const response = await procesarRPA({ 
+        archivo_contenido: archivoRPA,
+        guardar_en_prolog: true 
+      });
       
       if (response.data.success) {
         setInformeRPA(response.data.data.informe);
         setLogRPA(response.data.data.log);
-        toast.success(`${response.data.data.enfermedades_procesadas} enfermedades procesadas`);
+        
+        const { enfermedades_procesadas, prolog_actualizado, error_prolog } = response.data.data;
+        
+        if (prolog_actualizado) {
+          toast.success(`✓ ${enfermedades_procesadas} enfermedad(es) procesada(s) y guardada(s) en la base de conocimiento`);
+          // Recargar enfermedades para reflejar los cambios
+          setTimeout(() => cargarDatos(), 500);
+        } else if (error_prolog) {
+          toast.warning(`${enfermedades_procesadas} enfermedad(es) procesada(s), pero hubo un error al actualizar Prolog: ${error_prolog}`);
+        } else {
+          toast.success(`${enfermedades_procesadas} enfermedad(es) procesada(s) (informe generado)`);
+        }
       }
     } catch (error) {
       toast.error('Error al procesar: ' + (error.response?.data?.error || error.message));

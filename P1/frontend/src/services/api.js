@@ -40,7 +40,9 @@ export const obtenerEnfermedadesCronicas = () => api.get('/enfermedades-cronicas
 
 export const diagnosticar = (data) => api.post('/diagnosticar', data);
 
-export const generarPDF = (data) => api.post('/generar-pdf', data);
+export const generarPDF = (data) => api.post('/generar-pdf', data, {
+  responseType: 'blob' // Recibir PDF como blob directamente
+});
 
 // ==================== AUTENTICACIÓN ====================
 

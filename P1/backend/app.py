@@ -3,10 +3,11 @@ Backend Flask para MediLogic
 API REST para el sistema experto de diagnóstico médico
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
 import sys
+from datetime import datetime
 
 # Agregar src al path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -170,7 +171,7 @@ def diagnosticar():
 @app.route('/api/generar-pdf', methods=['POST'])
 def generar_pdf():
     """
-    Generar informe PDF
+    Generar informe PDF y enviarlo directamente (sin guardar en servidor)
     
     Body:
     {
@@ -184,76 +185,74 @@ def generar_pdf():
         datos_paciente = data.get('datos_paciente', {})
         diagnosticos = data.get('diagnosticos', [])
         
-        # Generar nombre único para el archivo
-        import time
-        nombre_archivo = f"informe_{int(time.time())}.pdf"
-        
-        # Ruta al directorio de informes
-        directorio_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        directorio_informes = os.path.join(directorio_base, 'informes')
-        ruta_archivo = os.path.join(directorio_informes, nombre_archivo)
-        
-        # Crear directorio si no existe
-        os.makedirs(directorio_informes, exist_ok=True)
-        
         # Extraer datos del paciente
         sintomas = datos_paciente.get('sintomas', [])
         alergias = datos_paciente.get('alergias', [])
         cronicas = datos_paciente.get('cronicas', [])
         
-        # Generar PDF
-        pdf_generator.generar_informe_diagnostico(
-            ruta_archivo,
+        # Generar PDF en memoria
+        pdf_buffer = pdf_generator.generar_informe_en_memoria(
             sintomas,
             alergias,
             cronicas,
             diagnosticos
         )
         
-        return jsonify({
-            'success': True,
-            'data': {
-                'archivo': nombre_archivo,
-                'url': f'/api/descargar-pdf/{nombre_archivo}'
-            }
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-
-@app.route('/api/descargar-pdf/<nombre_archivo>', methods=['GET'])
-def descargar_pdf(nombre_archivo):
-    """Descargar archivo PDF generado"""
-    try:
-        from flask import send_file
-        
-        # Ruta al directorio de informes
-        directorio_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        directorio_informes = os.path.join(directorio_base, 'informes')
-        ruta_archivo = os.path.join(directorio_informes, nombre_archivo)
-        
-        if os.path.exists(ruta_archivo):
-            return send_file(
-                ruta_archivo,
-                mimetype='application/pdf',
-                as_attachment=True,
-                download_name=nombre_archivo
-            )
-        else:
+        if pdf_buffer is None:
             return jsonify({
                 'success': False,
-                'error': 'Archivo no encontrado'
-            }), 404
-            
+                'error': 'Error al generar el PDF'
+            }), 500
+        
+        # Generar nombre de archivo con timestamp
+        nombre_archivo = f"informe_medilogic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        
+        # Enviar directamente desde memoria
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=nombre_archivo
+        )
+        
     except Exception as e:
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
+
+
+# ==================== DESCARGA PDF (LEGACY - YA NO SE USA) ====================
+# Los PDFs ahora se generan y descargan directamente en memoria sin guardarse en el servidor
+# Este endpoint se mantiene comentado por referencia
+
+# @app.route('/api/descargar-pdf/<nombre_archivo>', methods=['GET'])
+# def descargar_pdf(nombre_archivo):
+#     """Descargar archivo PDF generado (YA NO SE USA - PDFs se generan en memoria)"""
+#     try:
+#         # Ruta al directorio de informes
+#         directorio_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#         directorio_informes = os.path.join(directorio_base, 'informes')
+#         ruta_archivo = os.path.join(directorio_informes, nombre_archivo)
+#         
+#         if os.path.exists(ruta_archivo):
+#             return send_file(
+#                 ruta_archivo,
+#                 mimetype='application/pdf',
+#                 as_attachment=True,
+#                 download_name=nombre_archivo
+#             )
+#         else:
+#             return jsonify({
+#                 'success': False,
+#                 'error': 'Archivo no encontrado'
+#             }), 404
+#             
+#     except Exception as e:
+#         return jsonify({
+#             'success': False,
+#             'error': str(e)
+#         }), 500
 
 
 # ==================== AUTENTICACIÓN ====================
@@ -377,7 +376,15 @@ def eliminar_enfermedad(id):
 def obtener_archivo_prolog():
     """Obtener contenido del archivo Prolog"""
     try:
-        archivo_pl = os.path.join('..', 'base_conocimiento', 'medilogic.pl')
+        # Obtener ruta absoluta del archivo Prolog
+        ruta_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        archivo_pl = os.path.join(ruta_base, 'base_conocimiento', 'medilogic.pl')
+        
+        if not os.path.exists(archivo_pl):
+            return jsonify({
+                'success': False,
+                'error': f'Archivo no encontrado: {archivo_pl}'
+            }), 404
         
         with open(archivo_pl, 'r', encoding='utf-8') as f:
             contenido = f.read()
@@ -390,6 +397,7 @@ def obtener_archivo_prolog():
         })
         
     except Exception as e:
+        print(f"Error en /api/admin/prolog GET: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -403,7 +411,9 @@ def guardar_archivo_prolog():
         data = request.get_json()
         contenido = data.get('contenido', '')
         
-        archivo_pl = os.path.join('..', 'base_conocimiento', 'medilogic.pl')
+        # Obtener ruta absoluta del archivo Prolog
+        ruta_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        archivo_pl = os.path.join(ruta_base, 'base_conocimiento', 'medilogic.pl')
         
         with open(archivo_pl, 'w', encoding='utf-8') as f:
             f.write(contenido)
@@ -417,6 +427,7 @@ def guardar_archivo_prolog():
         })
         
     except Exception as e:
+        print(f"Error en /api/admin/prolog POST: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -432,12 +443,14 @@ def procesar_rpa():
     
     Body:
     {
-        "archivo_contenido": "ENFERMEDAD\nID: e9\n..."
+        "archivo_contenido": "ENFERMEDAD\nID: e9\n...",
+        "guardar_en_prolog": true (opcional, default: true)
     }
     """
     try:
         data = request.get_json()
         contenido = data.get('archivo_contenido', '')
+        guardar_en_prolog = data.get('guardar_en_prolog', True)
         
         # Guardar temporalmente
         import tempfile
@@ -452,6 +465,40 @@ def procesar_rpa():
         for enf in enfermedades:
             rpa.clasificar_enfermedad(enf)
         
+        # Guardar en base de conocimiento Prolog si se solicita
+        prolog_actualizado = False
+        error_prolog = None
+        
+        if guardar_en_prolog and enfermedades:
+            try:
+                print(f"[RPA] Iniciando guardado en Prolog de {len(enfermedades)} enfermedades...")
+                
+                # Obtener ruta del archivo Prolog
+                ruta_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                archivo_prolog = os.path.join(ruta_base, 'base_conocimiento', 'medilogic.pl')
+                
+                print(f"[RPA] Ruta archivo Prolog: {archivo_prolog}")
+                
+                # Agregar a Prolog
+                rpa.agregar_enfermedades_a_prolog(enfermedades, archivo_prolog)
+                print(f"[RPA] Enfermedades agregadas al archivo")
+                
+                # Recargar motor Prolog para reflejar cambios
+                print("[RPA] Recargando motor Prolog...")
+                resultado_recarga = prolog_engine.recargar_base_conocimiento()
+                
+                if resultado_recarga:
+                    prolog_actualizado = True
+                    print("[RPA] ✓ Motor Prolog recargado exitosamente")
+                else:
+                    error_prolog = "No se pudo recargar el motor Prolog"
+                    print(f"[RPA] ✗ {error_prolog}")
+                
+            except Exception as e:
+                error_prolog = str(e)
+                print(f"[RPA] ✗ Error al guardar en Prolog: {error_prolog}")
+                rpa._registrar_log(f"Error al guardar en Prolog: {error_prolog}", tipo='ERROR')
+        
         # Generar informe
         archivo_informe = rpa.generar_informe_txt(enfermedades)
         
@@ -462,14 +509,20 @@ def procesar_rpa():
         # Limpiar archivo temporal
         os.unlink(temp_file)
         
-        return jsonify({
+        respuesta = {
             'success': True,
             'data': {
                 'enfermedades_procesadas': len(enfermedades),
                 'informe': informe_contenido,
+                'prolog_actualizado': prolog_actualizado,
                 'log': rpa.obtener_log()
             }
-        })
+        }
+        
+        if error_prolog:
+            respuesta['data']['error_prolog'] = error_prolog
+        
+        return jsonify(respuesta)
         
     except Exception as e:
         return jsonify({

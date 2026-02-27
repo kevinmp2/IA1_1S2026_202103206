@@ -98,7 +98,15 @@ presenta_sintoma(e8, s2, 8).  % Tos seca
 presenta_sintoma(e8, s5, 9).  % Fatiga
 presenta_sintoma(e8, s15, 8). % Dificultad para respirar
 presenta_sintoma(e8, s11, 7). % Dolor muscular
-presenta_sintoma(e8, s3, 6).  % Dolor de cabeza
+presenta_sintoma(e8, s3, 6).
+
+% Neumonía Atípica (e9)
+presenta_sintoma(e9, s1, 7).
+presenta_sintoma(e9, s2, 7).
+presenta_sintoma(e9, s15, 7).
+presenta_sintoma(e9, s5, 7).
+
+  % Dolor de cabeza
 
 % ==============================================================================
 % HECHOS: MEDICAMENTOS
@@ -148,7 +156,10 @@ trata_enfermedad(m1, e7, 7).  % Paracetamol
 trata_enfermedad(m3, e7, 8).  % Amoxicilina
 
 % COVID-19
-trata_enfermedad(m1, e8, 7).  % Paracetamol (sintomático)
+trata_enfermedad(m1, e8, 7).
+enfermedad(e9, 'Neumonía Atípica', 'Infección pulmonar causada por agentes atípicos como Mycoplasma pneumoniae', 'respiratorio', 'bacterial', 'grave').
+
+  % Paracetamol (sintomático)
 
 % ==============================================================================
 % HECHOS: ENFERMEDADES CRÓNICAS

@@ -122,6 +122,103 @@ class RPA_MediLogic:
         
         return enfermedad
     
+    def agregar_enfermedades_a_prolog(self, enfermedades, archivo_prolog):
+        """
+        Agregar enfermedades procesadas a la base de conocimiento Prolog
+        
+        Args:
+            enfermedades (list): Lista de enfermedades a agregar
+            archivo_prolog (str): Ruta del archivo medilogic.pl
+            
+        Returns:
+            bool: True si se agregaron correctamente
+        """
+        try:
+            if not os.path.exists(archivo_prolog):
+                raise FileNotFoundError(f"Archivo Prolog no encontrado: {archivo_prolog}")
+            
+            # Leer contenido actual
+            with open(archivo_prolog, 'r', encoding='utf-8') as f:
+                contenido = f.read()
+            
+            # Encontrar las secciones
+            # Buscar el último enfermedad(...) 
+            import re
+            
+            # Encontrar la última línea de enfermedad(...)
+            enfermedades_existentes = re.findall(r'enfermedad\([^)]+\)\.', contenido)
+            if not enfermedades_existentes:
+                raise ValueError("No se encontraron enfermedades existentes en el archivo")
+            
+            ultima_enfermedad = enfermedades_existentes[-1]
+            pos_ultima_enf = contenido.rfind(ultima_enfermedad)
+            pos_insercion_enf = pos_ultima_enf + len(ultima_enfermedad)
+            
+            # Construir texto de nuevas enfermedades
+            nuevas_enfermedades_texto = "\n"
+            nuevos_sintomas_texto = "\n"
+            
+            for enf in enfermedades:
+                # Validar campos requeridos
+                if not all(k in enf for k in ['ID', 'Nombre', 'Descripcion', 'Sistema', 'Tipo', 'Gravedad']):
+                    self._registrar_log(f"Enfermedad incompleta, saltando: {enf.get('Nombre', 'sin nombre')}", tipo='ADVERTENCIA')
+                    continue
+                
+                # Validar que el ID no exista
+                if f"enfermedad({enf['ID']}," in contenido:
+                    self._registrar_log(f"Enfermedad {enf['ID']} ya existe, saltando", tipo='ADVERTENCIA')
+                    continue
+                
+                # Construir predicado de enfermedad
+                # enfermedad(ID, Nombre, Descripcion, Sistema, Tipo, Gravedad).
+                enf_prolog = f"enfermedad({enf['ID']}, '{enf['Nombre']}', '{enf['Descripcion']}', '{enf['Sistema']}', '{enf['Tipo']}', '{enf['Gravedad']}').\n"
+                nuevas_enfermedades_texto += enf_prolog
+                
+                # Construir predicados de síntomas si existen
+                if 'Sintomas' in enf and enf['Sintomas']:
+                    sintomas_ids = [s.strip() for s in enf['Sintomas'].split(',') if s.strip()]
+                    
+                    nuevos_sintomas_texto += f"\n% {enf['Nombre']} ({enf['ID']})\n"
+                    
+                    # Asignar peso predeterminado de 7 (moderado)
+                    for sintoma_id in sintomas_ids:
+                        # presenta_sintoma(EnfermedadID, SintomaID, Peso)
+                        sintoma_prolog = f"presenta_sintoma({enf['ID']}, {sintoma_id}, 7).\n"
+                        nuevos_sintomas_texto += sintoma_prolog
+                
+                self._registrar_log(f"Agregada a Prolog: {enf['Nombre']} ({enf['ID']})")
+            
+            # Insertar nuevas enfermedades
+            contenido_actualizado = (
+                contenido[:pos_insercion_enf] + 
+                nuevas_enfermedades_texto + 
+                contenido[pos_insercion_enf:]
+            )
+            
+            # Encontrar la sección de presenta_sintoma y agregar al final
+            sintomas_existentes = re.findall(r'presenta_sintoma\([^)]+\)\.', contenido_actualizado)
+            if sintomas_existentes:
+                ultimo_sintoma = sintomas_existentes[-1]
+                pos_ultimo_sint = contenido_actualizado.rfind(ultimo_sintoma)
+                pos_insercion_sint = pos_ultimo_sint + len(ultimo_sintoma)
+                
+                contenido_actualizado = (
+                    contenido_actualizado[:pos_insercion_sint] + 
+                    nuevos_sintomas_texto + 
+                    contenido_actualizado[pos_insercion_sint:]
+                )
+            
+            # Guardar archivo actualizado
+            with open(archivo_prolog, 'w', encoding='utf-8') as f:
+                f.write(contenido_actualizado)
+            
+            self._registrar_log(f"Base de conocimiento Prolog actualizada: {len(enfermedades)} enfermedades agregadas")
+            return True
+            
+        except Exception as e:
+            self._registrar_log(f"Error al agregar a Prolog: {str(e)}", tipo='ERROR')
+            raise
+    
     def automatizar_ingreso_interfaz(self, enfermedades, tiempo_por_campo=0.5):
         """
         Automatizar el ingreso de enfermedades en la interfaz gráfica

@@ -12,28 +12,55 @@ function Paciente() {
   const [cronicasSeleccionadas, setCronicasSeleccionadas] = useState([]);
   const [diagnosticos, setDiagnosticos] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingDatos, setLoadingDatos] = useState(true);
   const [historial, setHistorial] = useState([]);
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar una vez al montar
 
   const cargarDatos = async () => {
+    setLoadingDatos(true);
+    console.log('🔄 Cargando datos iniciales del módulo de paciente...');
+    
     try {
       const [resSintomas, resCronicas] = await Promise.all([
         obtenerSintomas(),
         obtenerEnfermedadesCronicas()
       ]);
 
-      if (resSintomas.data.success) {
+      // Procesar síntomas
+      if (resSintomas?.data?.success && Array.isArray(resSintomas.data.data)) {
         setSintomas(resSintomas.data.data);
+        console.log(`✓ Síntomas cargados: ${resSintomas.data.data.length}`);
+      } else {
+        setSintomas([]);
+        console.warn('⚠ No se pudieron cargar síntomas (success=false o datos inválidos)');
       }
 
-      if (resCronicas.data.success) {
+      // Procesar enfermedades crónicas
+      if (resCronicas?.data?.success && Array.isArray(resCronicas.data.data)) {
         setCronicas(resCronicas.data.data);
+        console.log(`✓ Enfermedades crónicas cargadas: ${resCronicas.data.data.length}`);
+      } else {
+        setCronicas([]);
+        console.warn('⚠ No se pudieron cargar enfermedades crónicas (success=false o datos inválidos)');
       }
+
+      console.log('✓ Datos cargados correctamente:', { 
+        sintomas: resSintomas?.data?.data?.length || 0, 
+        cronicas: resCronicas?.data?.data?.length || 0 
+      });
     } catch (error) {
+      console.error('✗ Error al cargar datos:', error);
       toast.error('Error al cargar datos: ' + (error.response?.data?.error || error.message));
+      
+      // Asegurar que los arrays se inicialicen incluso si hay error
+      setSintomas([]);
+      setCronicas([]);
+    } finally {
+      setLoadingDatos(false);
     }
   };
 
@@ -121,6 +148,7 @@ function Paciente() {
     }
 
     try {
+      // Hacer petición con responseType blob para recibir el PDF directamente
       const response = await generarPDF({
         datos_paciente: {
           fecha: new Date().toLocaleDateString(),
@@ -132,12 +160,22 @@ function Paciente() {
         diagnosticos: diagnosticos.diagnosticos
       });
 
-      if (response.data.success) {
-        toast.success('PDF generado correctamente');
-        // Descargar el archivo
-        const url = `http://localhost:5000${response.data.data.url}`;
-        window.open(url, '_blank');
-      }
+      // El PDF viene directamente en response.data como blob
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Crear enlace temporal para descargar
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `informe_medilogic_${new Date().getTime()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Limpiar
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('✓ PDF descargado correctamente');
     } catch (error) {
       toast.error('Error al generar PDF: ' + (error.response?.data?.error || error.message));
     }
@@ -165,13 +203,22 @@ function Paciente() {
             <div className="card">
               <h2 className="card-title">Selección de Síntomas</h2>
               
-              {Object.entries(sintomasPorSistema).map(([sistema, sintomasSistema]) => (
-                <div key={sistema} className="sistema-group">
-                  <h3 className="sistema-title">
-                    {sistema.charAt(0).toUpperCase() + sistema.slice(1)}
-                  </h3>
-                  
-                  {sintomasSistema.map(sintoma => {
+              {loadingDatos ? (
+                <div className="loading-message">
+                  <p>⏳ Cargando síntomas...</p>
+                </div>
+              ) : sintomas.length === 0 ? (
+                <div className="empty-message">
+                  <p>⚠️ No se pudieron cargar los síntomas. Por favor, recargue la página.</p>
+                </div>
+              ) : (
+                Object.entries(sintomasPorSistema).map(([sistema, sintomasSistema]) => (
+                  <div key={sistema} className="sistema-group">
+                    <h3 className="sistema-title">
+                      {sistema.charAt(0).toUpperCase() + sistema.slice(1)}
+                    </h3>
+                    
+                    {sintomasSistema.map(sintoma => {
                     const seleccionado = sintomasSeleccionados.find(s => s.id === sintoma.id);
                     
                     return (
@@ -207,7 +254,8 @@ function Paciente() {
                     );
                   })}
                 </div>
-              ))}
+              ))
+              )}
             </div>
 
             <div className="card">

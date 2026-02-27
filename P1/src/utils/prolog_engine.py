@@ -36,10 +36,10 @@ class PrologEngine:
     def recargar_base_conocimiento(self):
         """Recargar el archivo Prolog"""
         try:
-            self.prolog.retractall("sintoma(_, _, _, _)")
-            self.prolog.retractall("enfermedad(_, _, _, _, _, _)")
-            self.prolog.retractall("medicamento(_, _, _, _, _)")
-            self.cargar_base_conocimiento()
+            # Usar reconsult en lugar de retractall + consult
+            ruta_unix = self.archivo_pl.replace('\\', '/')
+            self.prolog.consult(ruta_unix)
+            print(f"✓ Base de conocimiento recargada desde: {self.archivo_pl}")
             return True
         except Exception as e:
             print(f"Error al recargar: {str(e)}")
