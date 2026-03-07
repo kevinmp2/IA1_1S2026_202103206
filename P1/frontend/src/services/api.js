@@ -75,4 +75,6 @@ export const procesarRPA = (data) => api.post('/rpa/procesar', data);
 
 export const enviarCorreoRPA = (data) => api.post('/rpa/enviar-correo', data);
 
+export const verificarCredencialesConfiguradas = () => api.get('/rpa/verificar-credenciales');
+
 export default api;

@@ -126,6 +126,34 @@ cd frontend
 npm install
 ```
 
+#### 4. Configurar Variables de Entorno (Opcional)
+
+Para el envío de correos electrónicos por RPA sin ingresar credenciales manualmente cada vez:
+
+**Paso 1:** Copiar el archivo de ejemplo
+```bash
+# Desde la carpeta P1
+cp .env.example .env
+```
+
+**Paso 2:** Editar el archivo `.env` con tus credenciales:
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+EMAIL_REMITENTE=tu-correo@gmail.com
+EMAIL_PASSWORD=tu-contraseña-de-aplicacion
+```
+
+**Paso 3:** Obtener contraseña de aplicación de Gmail:
+1. Ir a https://myaccount.google.com/apppasswords
+2. Iniciar sesión en tu cuenta de Google
+3. En "Nombre de la app", escribir: `MediLogic`
+4. Click en "Generar"
+5. Copiar la contraseña de 16 caracteres generada
+6. Pegarla en `EMAIL_PASSWORD` del archivo `.env`
+
+**Nota:** El archivo `.env` está en `.gitignore` y nunca se subirá al repositorio. Si no configuras estas variables, podrás ingresar las credenciales manualmente en el panel de administrador.
+
 ### Verificar Instalación
 ```bash
 # Verificar Prolog

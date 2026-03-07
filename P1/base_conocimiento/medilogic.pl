@@ -97,6 +97,27 @@ presenta_sintoma(e9, s2, 7).
 presenta_sintoma(e9, s15, 7).
 presenta_sintoma(e9, s5, 7).
 
+% Bronquitis Aguda (e12)
+presenta_sintoma(e12, s1, 7).
+presenta_sintoma(e12, s2, 7).
+presenta_sintoma(e12, s5, 7).
+
+% Síndrome de Intestino Irritable (e13)
+presenta_sintoma(e13, s6, 7).
+presenta_sintoma(e13, s9, 7).
+
+% Gastritis Aguda (e10)
+presenta_sintoma(e10, s6, 7).
+presenta_sintoma(e10, s9, 7).
+
+% Arritmia Cardíaca (e11)
+presenta_sintoma(e11, s11, 7).
+presenta_sintoma(e11, s14, 7).
+
+
+
+
+
   % Dolor de cabeza
 
 % ==============================================================================
@@ -149,6 +170,14 @@ trata_enfermedad(m3, e7, 8).  % Amoxicilina
 % COVID-19
 trata_enfermedad(m1, e8, 7).
 enfermedad(e9, 'Neumonía Atípica', 'Infección pulmonar causada por agentes atípicos como Mycoplasma pneumoniae', 'respiratorio', 'bacterial', 'grave').
+enfermedad(e12, 'Bronquitis Aguda', 'Inflamación de los bronquios que transportan aire a los pulmones', 'respiratorio', 'viral', 'moderada').
+enfermedad(e13, 'Síndrome de Intestino Irritable', 'Trastorno funcional del aparato digestivo', 'digestivo', 'cronico', 'leve').
+enfermedad(e10, 'Gastritis Aguda', 'Inflamación repentina del revestimiento del estómago', 'digestivo', 'general', 'moderada').
+enfermedad(e11, 'Arritmia Cardíaca', 'Alteración del ritmo cardíaco normal', 'cardiovascular', 'cronico', 'grave').
+
+
+
+
 
   % Paracetamol (sintomático)
 

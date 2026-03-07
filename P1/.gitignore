@@ -40,3 +40,8 @@ Thumbs.db
 *.pdf
 *.log
 temp/
+
+# Environment variables (contiene credenciales)
+.env
+# Mantener .env.example para documentación
+!.env.example

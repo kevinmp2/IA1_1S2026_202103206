@@ -36,7 +36,7 @@ function Paciente() {
         console.log(`✓ Síntomas cargados: ${resSintomas.data.data.length}`);
       } else {
         setSintomas([]);
-        console.warn('⚠ No se pudieron cargar síntomas (success=false o datos inválidos)');
+        console.warn('No se pudieron cargar síntomas (success=false o datos inválidos)');
       }
 
       // Procesar enfermedades crónicas
@@ -45,7 +45,7 @@ function Paciente() {
         console.log(`✓ Enfermedades crónicas cargadas: ${resCronicas.data.data.length}`);
       } else {
         setCronicas([]);
-        console.warn('⚠ No se pudieron cargar enfermedades crónicas (success=false o datos inválidos)');
+        console.warn('No se pudieron cargar enfermedades crónicas (success=false o datos inválidos)');
       }
 
       console.log('✓ Datos cargados correctamente:', { 
@@ -205,11 +205,11 @@ function Paciente() {
               
               {loadingDatos ? (
                 <div className="loading-message">
-                  <p>⏳ Cargando síntomas...</p>
+                  <p>Cargando síntomas...</p>
                 </div>
               ) : sintomas.length === 0 ? (
                 <div className="empty-message">
-                  <p>⚠️ No se pudieron cargar los síntomas. Por favor, recargue la página.</p>
+                  <p>No se pudieron cargar los síntomas. Por favor, recargue la página.</p>
                 </div>
               ) : (
                 Object.entries(sintomasPorSistema).map(([sistema, sintomasSistema]) => (

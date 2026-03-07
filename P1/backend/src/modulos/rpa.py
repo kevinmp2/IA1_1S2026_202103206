@@ -309,8 +309,8 @@ class RPA_MediLogic:
         self,
         archivo_informe,
         destinatarios,
-        smtp_server='smtp.gmail.com',
-        smtp_port=587,
+        smtp_server=None,
+        smtp_port=None,
         remitente='',
         password=''
     ):
@@ -322,12 +322,16 @@ class RPA_MediLogic:
         Args:
             archivo_informe (str): Ruta del archivo de informe
             destinatarios (list): Lista de correos destinatarios
-            smtp_server (str): Servidor SMTP
-            smtp_port (int): Puerto SMTP
+            smtp_server (str): Servidor SMTP (usa SMTP_HOST de .env si no se especifica)
+            smtp_port (int): Puerto SMTP (usa SMTP_PORT de .env si no se especifica)
             remitente (str): Correo remitente
             password (str): Contraseña del remitente
         """
         try:
+            # Obtener configuración SMTP desde .env o usar valores por defecto
+            smtp_server = smtp_server or os.getenv('SMTP_HOST')
+            smtp_port = smtp_port or int(os.getenv('SMTP_PORT'))
+            
             # Crear mensaje
             msg = MIMEMultipart()
             msg['From'] = remitente

@@ -50,17 +50,6 @@ function Home() {
           </Link>
         </div>
       </div>
-
-      <div className="warning-section">
-        <div className="alert alert-warning">
-          <h3>⚠️ Advertencia Importante</h3>
-          <p>
-            Este sistema es únicamente para propósitos educativos y de apoyo diagnóstico preliminar. 
-            <strong> NO sustituye la consulta con un médico profesional.</strong> Siempre busque 
-            atención médica calificada para diagnósticos y tratamientos definitivos.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

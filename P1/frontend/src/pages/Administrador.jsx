@@ -9,7 +9,8 @@ import {
   obtenerArchivoProlog,
   guardarArchivoProlog,
   procesarRPA,
-  enviarCorreoRPA
+  enviarCorreoRPA,
+  verificarCredencialesConfiguradas
 } from '../services/api';
 import './Administrador.css';
 
@@ -29,6 +30,10 @@ function Administrador() {
   const [emailRemitente, setEmailRemitente] = useState('');
   const [emailPassword, setEmailPassword] = useState('');
   const [emailDestinatarios, setEmailDestinatarios] = useState('');
+  const [credencialesConfiguradas, setCredencialesConfiguradas] = useState({
+    remitente: false,
+    password: false
+  });
 
   // Modal states
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -45,9 +50,29 @@ function Administrador() {
 
     // Cargar datos al montar el componente
     cargarDatos();
+    verificarCredenciales();
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Solo ejecutar una vez al montar
+
+  const verificarCredenciales = async () => {
+    try {
+      const response = await verificarCredencialesConfiguradas();
+      if (response.data) {
+        setCredencialesConfiguradas({
+          remitente: response.data.remitente_configurado,
+          password: response.data.password_configurado
+        });
+        
+        // Pre-llenar el remitente si está configurado
+        if (response.data.remitente) {
+          setEmailRemitente(response.data.remitente);
+        }
+      }
+    } catch (error) {
+      console.error('Error al verificar credenciales:', error);
+    }
+  };
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -166,8 +191,19 @@ function Administrador() {
       return;
     }
 
-    if (!emailRemitente || !emailPassword || !emailDestinatarios) {
-      toast.warning('Complete todos los campos de correo');
+    if (!emailDestinatarios) {
+      toast.warning('Ingrese al menos un destinatario');
+      return;
+    }
+
+    // Solo validar credenciales si no están configuradas en el servidor
+    if (!credencialesConfiguradas.remitente && !emailRemitente) {
+      toast.warning('Ingrese el correo remitente o configúrelo en el archivo .env del servidor');
+      return;
+    }
+
+    if (!credencialesConfiguradas.password && !emailPassword) {
+      toast.warning('Ingrese la contraseña de aplicación o configúrela en el archivo .env del servidor');
       return;
     }
 
@@ -175,12 +211,21 @@ function Administrador() {
     try {
       const destinatarios = emailDestinatarios.split(',').map(e => e.trim());
       
-      const response = await enviarCorreoRPA({
+      // Construir el objeto de datos dinámicamente
+      const datosCorreo = {
         informe: informeRPA,
-        destinatarios,
-        remitente: emailRemitente,
-        password: emailPassword
-      });
+        destinatarios
+      };
+      
+      // Solo incluir credenciales si no están vacías (si están vacías, el backend usará .env)
+      if (emailRemitente) {
+        datosCorreo.remitente = emailRemitente;
+      }
+      if (emailPassword) {
+        datosCorreo.password = emailPassword;
+      }
+      
+      const response = await enviarCorreoRPA(datosCorreo);
 
       if (response.data.success) {
         toast.success('Correo enviado exitosamente');
@@ -416,25 +461,34 @@ function Administrador() {
       <div className="card">
         <h3>Enviar Informe por Correo</h3>
         
+        {(credencialesConfiguradas.remitente && credencialesConfiguradas.password)}
+        
         <div className="form-group">
-          <label className="form-label">Correo Remitente (Gmail):</label>
+          <label className="form-label">
+            Correo Remitente (Gmail):
+          </label>
           <input
             type="email"
             className="form-input"
             value={emailRemitente}
             onChange={(e) => setEmailRemitente(e.target.value)}
-            placeholder="tu-correo@gmail.com"
+            placeholder={credencialesConfiguradas.remitente ? "Configurado en servidor" : "tu-correo@gmail.com"}
+            disabled={credencialesConfiguradas.remitente}
           />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Contraseña de Aplicación:</label>
+          <label className="form-label">
+            Contraseña de Aplicación:
+            {credencialesConfiguradas.password && <span style={{color: '#28a745', marginLeft: '5px'}}></span>}
+          </label>
           <input
             type="password"
             className="form-input"
             value={emailPassword}
             onChange={(e) => setEmailPassword(e.target.value)}
-            placeholder="Contraseña de aplicación de Gmail"
+            placeholder={credencialesConfiguradas.password ? "Configurada en servidor" : "Contraseña de aplicación de Gmail"}
+            disabled={credencialesConfiguradas.password}
           />
         </div>
 

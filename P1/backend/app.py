@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Agregar src al path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from utils.prolog_engine import PrologEngine
 from utils.pdf_generator import PDFGenerator
@@ -224,39 +224,6 @@ def generar_pdf():
             'success': False,
             'error': str(e)
         }), 500
-
-
-# ==================== DESCARGA PDF (LEGACY - YA NO SE USA) ====================
-# Los PDFs ahora se generan y descargan directamente en memoria sin guardarse en el servidor
-# Este endpoint se mantiene comentado por referencia
-
-# @app.route('/api/descargar-pdf/<nombre_archivo>', methods=['GET'])
-# def descargar_pdf(nombre_archivo):
-#     """Descargar archivo PDF generado (YA NO SE USA - PDFs se generan en memoria)"""
-#     try:
-#         # Ruta al directorio de informes
-#         directorio_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#         directorio_informes = os.path.join(directorio_base, 'informes')
-#         ruta_archivo = os.path.join(directorio_informes, nombre_archivo)
-#         
-#         if os.path.exists(ruta_archivo):
-#             return send_file(
-#                 ruta_archivo,
-#                 mimetype='application/pdf',
-#                 as_attachment=True,
-#                 download_name=nombre_archivo
-#             )
-#         else:
-#             return jsonify({
-#                 'success': False,
-#                 'error': 'Archivo no encontrado'
-#             }), 404
-#             
-#     except Exception as e:
-#         return jsonify({
-#             'success': False,
-#             'error': str(e)
-#         }), 500
 
 
 # ==================== AUTENTICACIÓN ====================
@@ -562,7 +529,7 @@ def enviar_correo_rpa():
         if not remitente or not password:
             return jsonify({
                 'success': False,
-                'error': 'Credenciales de correo no configuradas. Configure EMAIL_REMITENTE y EMAIL_PASSWORD en el archivo .env'
+                'error': 'Credenciales de correo no configuradas.'
             }), 400
         
         # Guardar informe temporalmente

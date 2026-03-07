@@ -18,28 +18,28 @@ class PrologEngine:
     
     def _obtener_ruta_pl(self):
         """Obtener ruta absoluta del archivo .pl"""
-        ruta_actual = os.path.dirname(os.path.abspath(__file__))
-        ruta_proyecto = os.path.dirname(os.path.dirname(ruta_actual))
+        ruta_actual = os.path.dirname(os.path.abspath(__file__))  # P1/backend/src/utils
+        ruta_src = os.path.dirname(ruta_actual)                    # P1/backend/src
+        ruta_backend = os.path.dirname(ruta_src)                   # P1/backend
+        ruta_proyecto = os.path.dirname(ruta_backend)              # P1
         ruta_pl = os.path.join(ruta_proyecto, 'base_conocimiento', 'medilogic.pl')
         return ruta_pl
     
     def cargar_base_conocimiento(self):
         """Cargar el archivo Prolog con la base de conocimiento"""
         try:
-            # Convertir ruta a formato Unix para Windows
             ruta_unix = self.archivo_pl.replace('\\', '/')
             self.prolog.consult(ruta_unix)
-            print(f"✓ Base de conocimiento cargada desde: {self.archivo_pl}")
+            print(f"Base de conocimiento cargada desde: {self.archivo_pl}")
         except Exception as e:
             raise Exception(f"Error al cargar base de conocimiento: {str(e)}")
     
     def recargar_base_conocimiento(self):
         """Recargar el archivo Prolog"""
         try:
-            # Usar reconsult en lugar de retractall + consult
             ruta_unix = self.archivo_pl.replace('\\', '/')
             self.prolog.consult(ruta_unix)
-            print(f"✓ Base de conocimiento recargada desde: {self.archivo_pl}")
+            print(f"Base de conocimiento recargada desde: {self.archivo_pl}")
             return True
         except Exception as e:
             print(f"Error al recargar: {str(e)}")
