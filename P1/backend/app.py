@@ -1,6 +1,6 @@
 """
 Backend Flask para MediLogic
-API REST para el sistema experto de diagnóstico médico
+API REST para el sistema 
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -8,6 +8,10 @@ from flask_cors import CORS
 import os
 import sys
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 # Agregar src al path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -17,14 +21,14 @@ from utils.pdf_generator import PDFGenerator
 from modulos.rpa import RPA_MediLogic
 
 app = Flask(__name__)
-CORS(app)  # Permitir peticiones desde React
+CORS(app)  
 
 # Inicializar motor Prolog
 prolog_engine = PrologEngine()
 pdf_generator = PDFGenerator()
 rpa = RPA_MediLogic()
 
-# Usuarios para autenticación (en producción usar DB y JWT)
+# Usuarios para autenticaciOn
 USUARIOS = {
     'admin': {
         'password': 'admin123',
@@ -41,7 +45,7 @@ USUARIOS = {
 }
 
 
-# ==================== ENDPOINTS PÚBLICOS ====================
+# ==================== ENDPOINTS ====================
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -540,8 +544,8 @@ def enviar_correo_rpa():
     {
         "informe": "contenido...",
         "destinatarios": ["admin@correo.com"],
-        "remitente": "medilogic@correo.com",
-        "password": "password"
+        "remitente": "medilogic@correo.com" (opcional - usa .env),
+        "password": "password" (opcional - usa .env)
     }
     """
     try:
@@ -549,8 +553,17 @@ def enviar_correo_rpa():
         
         informe = data.get('informe', '')
         destinatarios = data.get('destinatarios', [])
-        remitente = data.get('remitente', '')
-        password = data.get('password', '')
+        
+        # Usar valores de .env como predeterminados si no se envían
+        remitente = data.get('remitente') or os.getenv('EMAIL_REMITENTE', '')
+        password = data.get('password') or os.getenv('EMAIL_PASSWORD', '')
+        
+        # Validar que tengamos las credenciales (de frontend o .env)
+        if not remitente or not password:
+            return jsonify({
+                'success': False,
+                'error': 'Credenciales de correo no configuradas. Configure EMAIL_REMITENTE y EMAIL_PASSWORD en el archivo .env'
+            }), 400
         
         # Guardar informe temporalmente
         import tempfile
@@ -585,6 +598,27 @@ def enviar_correo_rpa():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@app.route('/api/rpa/verificar-credenciales', methods=['GET'])
+def verificar_credenciales():
+    """
+    Verificar si las credenciales de correo están configuradas en .env
+    
+    Retorna:
+    {
+        "remitente_configurado": true/false,
+        "password_configurado": true/false
+    }
+    """
+    remitente = os.getenv('EMAIL_REMITENTE', '')
+    password = os.getenv('EMAIL_PASSWORD', '')
+    
+    return jsonify({
+        'remitente_configurado': bool(remitente),
+        'password_configurado': bool(password),
+        'remitente': remitente if remitente else None  # Para pre-llenar el formulario
+    })
 
 
 # ==================== INICIAR SERVIDOR ====================

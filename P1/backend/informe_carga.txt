@@ -2,7 +2,7 @@
 INFORME DE CARGA DE ENFERMEDADES - MEDILOGIC RPA
 ================================================================================
 
-Fecha: 20/02/2026 23:25:47
+Fecha: 07/03/2026 00:15:44
 Total de enfermedades procesadas: 1
 
 
@@ -17,6 +17,18 @@ Total de enfermedades procesadas: 1
 ================================================================================
 REGISTRO DE OPERACIONES
 ================================================================================
-[2026-02-20 23:25:47] [INFO] Enfermedad cargada: Neumonía Atípica
-[2026-02-20 23:25:47] [INFO] Total de enfermedades cargadas: 1
-[2026-02-20 23:25:47] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
+[2026-03-06 22:50:21] [INFO] Enfermedad cargada: Neumonía Atípica
+[2026-03-06 22:50:21] [INFO] Enfermedad cargada: Gastritis Aguda
+[2026-03-06 22:50:21] [INFO] Total de enfermedades cargadas: 2
+[2026-03-06 22:50:21] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
+[2026-03-06 22:50:21] [INFO] Clasificación: Gastritis Aguda - Sistema: digestivo, Tipo: general
+[2026-03-06 22:50:21] [ADVERTENCIA] Enfermedad e9 ya existe, saltando
+[2026-03-06 22:50:21] [ADVERTENCIA] Enfermedad e10 ya existe, saltando
+[2026-03-06 22:50:21] [INFO] Base de conocimiento Prolog actualizada: 2 enfermedades agregadas
+[2026-03-06 22:50:21] [INFO] Informe generado: informe_carga.txt
+[2026-03-06 22:50:29] [INFO] Correo enviado a: 3034573840109@ingenieria.usac.edu.gt, 
+[2026-03-07 00:15:44] [INFO] Enfermedad cargada: Neumonía Atípica
+[2026-03-07 00:15:44] [INFO] Total de enfermedades cargadas: 1
+[2026-03-07 00:15:44] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
+[2026-03-07 00:15:44] [ADVERTENCIA] Enfermedad e9 ya existe, saltando
+[2026-03-07 00:15:44] [INFO] Base de conocimiento Prolog actualizada: 1 enfermedades agregadas
