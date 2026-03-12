@@ -21,7 +21,11 @@ from utils.pdf_generator import PDFGenerator
 from modulos.rpa import RPA_MediLogic
 
 app = Flask(__name__)
-CORS(app)  
+CORS(app)
+
+# Configurar encoding para JSON
+app.config['JSON_AS_ASCII'] = False
+app.config['JSON_SORT_KEYS'] = False
 
 # Inicializar motor Prolog
 prolog_engine = PrologEngine()

@@ -45,6 +45,32 @@ class PrologEngine:
             print(f"Error al recargar: {str(e)}")
             return False
     
+    def _corregir_codificacion(self, texto):
+        """
+        Corregir problemas de codificación UTF-8
+        
+        PySwip a veces devuelve cadenas con codificación incorrecta.
+        Esta función intenta corregirlas.
+        """
+        if not isinstance(texto, str):
+            return texto
+        
+        try:
+            # Intentar decodificar como latin-1 y recodificar como UTF-8
+            return texto.encode('latin-1').decode('utf-8')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            # Si falla, devolver el texto original
+            return texto
+    
+    def _procesar_resultado(self, resultado):
+        """
+        Procesar un resultado de Prolog corrigiendo la codificación
+        """
+        if isinstance(resultado, dict):
+            return {k: self._corregir_codificacion(v) if isinstance(v, str) else v 
+                    for k, v in resultado.items()}
+        return resultado
+    
     def consultar(self, query):
         """
         Realizar una consulta a Prolog
@@ -53,11 +79,12 @@ class PrologEngine:
             query (str): Consulta en sintaxis Prolog
             
         Returns:
-            list: Lista de resultados
+            list: Lista de resultados con codificación corregida
         """
         try:
             resultados = list(self.prolog.query(query))
-            return resultados
+            # Corregir la codificación de cada resultado
+            return [self._procesar_resultado(r) for r in resultados]
         except Exception as e:
             print(f"Error en consulta: {str(e)}")
             return []
