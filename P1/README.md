@@ -242,10 +242,8 @@ npm run build
 - Envío de notificaciones por correo
 
 ## Autor
-- Nombre: Kewin Maslovy Patzan
+- Nombre: Kewin Maslovy Patzan Tzun
 - Carnet: 202103206
 - Curso: Inteligencia Artificial 1 - 1S2026
 
-## Licencia
-MIT License - ...
 
