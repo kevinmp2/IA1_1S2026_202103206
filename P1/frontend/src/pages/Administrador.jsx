@@ -34,6 +34,7 @@ function Administrador() {
     remitente: false,
     password: false
   });
+  const [nombreArchivoSeleccionado, setNombreArchivoSeleccionado] = useState('');
 
   // Modal states
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -147,6 +148,57 @@ function Administrador() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCargarArchivo = (event) => {
+    const archivo = event.target.files[0];
+    
+    if (!archivo) {
+      setNombreArchivoSeleccionado('');
+      return;
+    }
+
+    // Verificar que sea un archivo de texto
+    if (!archivo.name.endsWith('.txt')) {
+      toast.warning('Por favor seleccione un archivo de texto (.txt)');
+      event.target.value = '';
+      setNombreArchivoSeleccionado('');
+      return;
+    }
+
+    // Guardar nombre del archivo
+    setNombreArchivoSeleccionado(archivo.name);
+
+    // Leer el contenido del archivo
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const contenido = e.target.result;
+      setArchivoRPA(contenido);
+      toast.success(`Archivo "${archivo.name}" cargado exitosamente`);
+    };
+    
+    reader.onerror = () => {
+      toast.error('Error al leer el archivo');
+      setNombreArchivoSeleccionado('');
+    };
+    
+    reader.readAsText(archivo, 'UTF-8');
+  };
+
+  const handleLimpiarRPA = () => {
+    setArchivoRPA('');
+    setNombreArchivoSeleccionado('');
+    setInformeRPA('');
+    setLogRPA([]);
+    
+    // Resetear el input de archivo
+    const fileInput = document.getElementById('file-upload');
+    if (fileInput) {
+      fileInput.value = '';
+    }
+    
+    toast.info('Formulario limpiado');
   };
 
   const handleProcesarRPA = async () => {
@@ -421,23 +473,57 @@ function Administrador() {
       
       <div className="card mb-20">
         <h3>Carga Masiva de Enfermedades</h3>
-        <p>Pegue el contenido del archivo de texto con el formato especificado:</p>
+        <p>Cargue un archivo de texto o pegue el contenido manualmente con el formato especificado:</p>
         
-        <textarea
-          className="form-textarea"
-          rows="10"
-          value={archivoRPA}
-          onChange={(e) => setArchivoRPA(e.target.value)}
-          placeholder="ENFERMEDAD&#10;ID: e9&#10;Nombre: ...&#10;---"
-        />
+        <div className="form-group">
+          <label className="form-label">📁 Cargar desde archivo:</label>
+          <div className="file-upload-wrapper">
+            <input
+              type="file"
+              id="file-upload"
+              accept=".txt"
+              onChange={handleCargarArchivo}
+              className="file-upload-input"
+            />
+            <label htmlFor="file-upload" className="file-upload-label">
+              <span className="file-upload-icon">📂</span>
+              <span>Seleccionar archivo .txt</span>
+            </label>
+          </div>
+          {nombreArchivoSeleccionado && (
+            <div className="file-name-display">
+              {nombreArchivoSeleccionado}
+            </div>
+          )}
+        </div>
         
-        <button
-          className="btn btn-primary mt-20"
-          onClick={handleProcesarRPA}
-          disabled={loading}
-        >
-          ▶️ Procesar Archivo
-        </button>
+        <div className="form-group">
+          <label className="form-label">✍️ O pegue el contenido aquí:</label>
+          <textarea
+            className="form-textarea"
+            rows="10"
+            value={archivoRPA}
+            onChange={(e) => setArchivoRPA(e.target.value)}
+            placeholder="ENFERMEDAD&#10;ID: e9&#10;Nombre: ...&#10;---"
+          />
+        </div>
+        
+        <div className="flex gap-10 mt-20">
+          <button
+            className="btn btn-primary"
+            onClick={handleProcesarRPA}
+            disabled={loading}
+          >
+            ▶️ Procesar Archivo
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleLimpiarRPA}
+            disabled={loading}
+          >
+            🗑️ Limpiar
+          </button>
+        </div>
       </div>
 
       {informeRPA && (

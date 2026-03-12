@@ -118,6 +118,9 @@ presenta_sintoma(e11, s14, 7).
 
 
 
+
+
+
   % Dolor de cabeza
 
 % ==============================================================================
@@ -174,6 +177,9 @@ enfermedad(e12, 'Bronquitis Aguda', 'Inflamación de los bronquios que transport
 enfermedad(e13, 'Síndrome de Intestino Irritable', 'Trastorno funcional del aparato digestivo', 'digestivo', 'cronico', 'leve').
 enfermedad(e10, 'Gastritis Aguda', 'Inflamación repentina del revestimiento del estómago', 'digestivo', 'general', 'moderada').
 enfermedad(e11, 'Arritmia Cardíaca', 'Alteración del ritmo cardíaco normal', 'cardiovascular', 'cronico', 'grave').
+
+
+
 
 
 

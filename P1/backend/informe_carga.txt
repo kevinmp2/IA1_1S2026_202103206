@@ -2,8 +2,8 @@
 INFORME DE CARGA DE ENFERMEDADES - MEDILOGIC RPA
 ================================================================================
 
-Fecha: 07/03/2026 00:15:44
-Total de enfermedades procesadas: 1
+Fecha: 11/03/2026 23:09:51
+Total de enfermedades procesadas: 5
 
 
 1. Neumonía Atípica
@@ -14,21 +14,73 @@ Total de enfermedades procesadas: 1
   Gravedad: grave
   Descripción: Infección pulmonar causada por bacterias atípicas como Mycoplasma pneumoniae
 
+2. Gastritis Aguda
+----------------------------------------
+  ID: e10
+  Sistema: digestivo
+  Tipo: general
+  Gravedad: moderada
+  Descripción: Inflamación repentina del revestimiento del estómago
+
+3. Arritmia Cardíaca
+----------------------------------------
+  ID: e11
+  Sistema: cardiovascular
+  Tipo: cronico
+  Gravedad: grave
+  Descripción: Alteración del ritmo cardíaco normal
+
+4. Bronquitis Aguda
+----------------------------------------
+  ID: e12
+  Sistema: respiratorio
+  Tipo: viral
+  Gravedad: moderada
+  Descripción: Inflamación de los bronquios que transportan aire a los pulmones
+
+5. Síndrome de Intestino Irritable
+----------------------------------------
+  ID: e13
+  Sistema: digestivo
+  Tipo: cronico
+  Gravedad: leve
+  Descripción: Trastorno funcional del aparato digestivo
+
 ================================================================================
 REGISTRO DE OPERACIONES
 ================================================================================
-[2026-03-06 22:50:21] [INFO] Enfermedad cargada: Neumonía Atípica
-[2026-03-06 22:50:21] [INFO] Enfermedad cargada: Gastritis Aguda
-[2026-03-06 22:50:21] [INFO] Total de enfermedades cargadas: 2
-[2026-03-06 22:50:21] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
-[2026-03-06 22:50:21] [INFO] Clasificación: Gastritis Aguda - Sistema: digestivo, Tipo: general
-[2026-03-06 22:50:21] [ADVERTENCIA] Enfermedad e9 ya existe, saltando
-[2026-03-06 22:50:21] [ADVERTENCIA] Enfermedad e10 ya existe, saltando
-[2026-03-06 22:50:21] [INFO] Base de conocimiento Prolog actualizada: 2 enfermedades agregadas
-[2026-03-06 22:50:21] [INFO] Informe generado: informe_carga.txt
-[2026-03-06 22:50:29] [INFO] Correo enviado a: 3034573840109@ingenieria.usac.edu.gt, 
-[2026-03-07 00:15:44] [INFO] Enfermedad cargada: Neumonía Atípica
-[2026-03-07 00:15:44] [INFO] Total de enfermedades cargadas: 1
-[2026-03-07 00:15:44] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
-[2026-03-07 00:15:44] [ADVERTENCIA] Enfermedad e9 ya existe, saltando
-[2026-03-07 00:15:44] [INFO] Base de conocimiento Prolog actualizada: 1 enfermedades agregadas
+[2026-03-11 23:03:12] [INFO] Enfermedad cargada: Neumonía Atípica
+[2026-03-11 23:03:12] [INFO] Enfermedad cargada: Gastritis Aguda
+[2026-03-11 23:03:12] [INFO] Enfermedad cargada: Arritmia Cardíaca
+[2026-03-11 23:03:12] [INFO] Enfermedad cargada: Bronquitis Aguda
+[2026-03-11 23:03:12] [INFO] Enfermedad cargada: Síndrome de Intestino Irritable
+[2026-03-11 23:03:12] [INFO] Total de enfermedades cargadas: 5
+[2026-03-11 23:03:12] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
+[2026-03-11 23:03:12] [INFO] Clasificación: Gastritis Aguda - Sistema: digestivo, Tipo: general
+[2026-03-11 23:03:12] [INFO] Clasificación: Arritmia Cardíaca - Sistema: cardiovascular, Tipo: cronico
+[2026-03-11 23:03:12] [INFO] Clasificación: Bronquitis Aguda - Sistema: respiratorio, Tipo: viral
+[2026-03-11 23:03:12] [INFO] Clasificación: Síndrome de Intestino Irritable - Sistema: digestivo, Tipo: cronico
+[2026-03-11 23:03:12] [ADVERTENCIA] Enfermedad e9 ya existe, saltando
+[2026-03-11 23:03:12] [ADVERTENCIA] Enfermedad e10 ya existe, saltando
+[2026-03-11 23:03:12] [ADVERTENCIA] Enfermedad e11 ya existe, saltando
+[2026-03-11 23:03:12] [ADVERTENCIA] Enfermedad e12 ya existe, saltando
+[2026-03-11 23:03:12] [ADVERTENCIA] Enfermedad e13 ya existe, saltando
+[2026-03-11 23:03:12] [INFO] Base de conocimiento Prolog actualizada: 5 enfermedades agregadas
+[2026-03-11 23:03:12] [INFO] Informe generado: informe_carga.txt
+[2026-03-11 23:09:51] [INFO] Enfermedad cargada: Neumonía Atípica
+[2026-03-11 23:09:51] [INFO] Enfermedad cargada: Gastritis Aguda
+[2026-03-11 23:09:51] [INFO] Enfermedad cargada: Arritmia Cardíaca
+[2026-03-11 23:09:51] [INFO] Enfermedad cargada: Bronquitis Aguda
+[2026-03-11 23:09:51] [INFO] Enfermedad cargada: Síndrome de Intestino Irritable
+[2026-03-11 23:09:51] [INFO] Total de enfermedades cargadas: 5
+[2026-03-11 23:09:51] [INFO] Clasificación: Neumonía Atípica - Sistema: respiratorio, Tipo: bacterial
+[2026-03-11 23:09:51] [INFO] Clasificación: Gastritis Aguda - Sistema: digestivo, Tipo: general
+[2026-03-11 23:09:51] [INFO] Clasificación: Arritmia Cardíaca - Sistema: cardiovascular, Tipo: cronico
+[2026-03-11 23:09:51] [INFO] Clasificación: Bronquitis Aguda - Sistema: respiratorio, Tipo: viral
+[2026-03-11 23:09:51] [INFO] Clasificación: Síndrome de Intestino Irritable - Sistema: digestivo, Tipo: cronico
+[2026-03-11 23:09:51] [ADVERTENCIA] Enfermedad e9 ya existe, saltando
+[2026-03-11 23:09:51] [ADVERTENCIA] Enfermedad e10 ya existe, saltando
+[2026-03-11 23:09:51] [ADVERTENCIA] Enfermedad e11 ya existe, saltando
+[2026-03-11 23:09:51] [ADVERTENCIA] Enfermedad e12 ya existe, saltando
+[2026-03-11 23:09:51] [ADVERTENCIA] Enfermedad e13 ya existe, saltando
+[2026-03-11 23:09:51] [INFO] Base de conocimiento Prolog actualizada: 5 enfermedades agregadas
