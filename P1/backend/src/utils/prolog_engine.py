@@ -311,9 +311,355 @@ class PrologEngine:
     
     def _guardar_en_archivo(self):
         """Guardar cambios en el archivo .pl"""
-        # Esta función guardará los cambios permanentemente
-        # Implementación completa más adelante
-        pass
+        try:
+            # Obtener todos los datos actuales de Prolog
+            sintomas = self.obtener_sintomas()
+            enfermedades = self.obtener_enfermedades()
+            medicamentos = self.obtener_medicamentos()
+            
+            # Leer el archivo actual para preservar otras secciones
+            with open(self.archivo_pl, 'r', encoding='utf-8') as f:
+                contenido = f.read()
+            
+            # Encontrar las secciones y reemplazarlas
+            import re
+            
+            # Construir nuevas secciones
+            nueva_seccion_sintomas = self._construir_seccion_sintomas(sintomas)
+            nueva_seccion_enfermedades = self._construir_seccion_enfermedades(enfermedades)
+            nueva_seccion_medicamentos = self._construir_seccion_medicamentos(medicamentos)
+            
+            # Reemplazar secciones (mantener el resto del archivo intacto)
+            # Esto es complejo, por ahora recargaremos el archivo
+            self.recargar_base_conocimiento()
+            return True
+        except Exception as e:
+            print(f"Error al guardar en archivo: {str(e)}")
+            return False
+    
+    def _construir_seccion_sintomas(self, sintomas):
+        """Construir texto de la sección de síntomas"""
+        lineas = ["% ==============================================================================\n"]
+        lineas.append("% HECHOS: SÍNTOMAS\n")
+        lineas.append("% ==============================================================================\n")
+        lineas.append("% sintoma(ID, Nombre, Descripcion, Sistema)\n")
+        for s in sintomas:
+            lineas.append(f"sintoma({s['id']}, '{s['nombre']}', '{s['descripcion']}', '{s['sistema']}').\n")
+        return ''.join(lineas)
+    
+    def _construir_seccion_enfermedades(self, enfermedades):
+        """Construir texto de la sección de enfermedades"""
+        lineas = ["% ==============================================================================\n"]
+        lineas.append("% HECHOS: ENFERMEDADES\n")
+        lineas.append("% ==============================================================================\n")
+        lineas.append("% enfermedad(ID, Nombre, Descripcion, Sistema, Tipo, Gravedad)\n")
+        for e in enfermedades:
+            lineas.append(f"enfermedad({e['id']}, '{e['nombre']}', '{e['descripcion']}', '{e['sistema']}', '{e['tipo']}', '{e['gravedad']}').\n")
+        return ''.join(lineas)
+    
+    def _construir_seccion_medicamentos(self, medicamentos):
+        """Construir texto de la sección de medicamentos"""
+        lineas = ["% ==============================================================================\n"]
+        lineas.append("% HECHOS: MEDICAMENTOS\n")
+        lineas.append("% ==============================================================================\n")
+        lineas.append("% medicamento(ID, Nombre, Principio, Tipo, Descripcion)\n")
+        for m in medicamentos:
+            lineas.append(f"medicamento({m['id']}, '{m['nombre']}', '{m['principio']}', '{m['tipo']}', '{m['descripcion']}').\n")
+        return ''.join(lineas)
+    
+    # ==================== CRUD ENFERMEDADES ====================
+    
+    def agregar_enfermedad(self, id_enf, nombre, descripcion, sistema, tipo, gravedad):
+        """Agregar una nueva enfermedad"""
+        try:
+            # Verificar que no exista
+            query_check = f"enfermedad('{id_enf}', _, _, _, _, _)"
+            existe = self.consultar(query_check)
+            if existe:
+                return {'success': False, 'error': f'La enfermedad con ID {id_enf} ya existe'}
+            
+            # Agregar a Prolog en memoria
+            query = f"assertz(enfermedad('{id_enf}', '{nombre}', '{descripcion}', '{sistema}', '{tipo}', '{gravedad}'))"
+            self.consultar(query)
+            
+            # Guardar en archivo
+            self._agregar_al_archivo_pl('enfermedad', (id_enf, nombre, descripcion, sistema, tipo, gravedad))
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def editar_enfermedad(self, id_enf, nombre, descripcion, sistema, tipo, gravedad):
+        """Editar una enfermedad existente"""
+        try:
+            # Eliminar la anterior
+            query_retract = f"retract(enfermedad('{id_enf}', _, _, _, _, _))"
+            self.consultar(query_retract)
+            
+            # Agregar la nueva
+            query_assert = f"assertz(enfermedad('{id_enf}', '{nombre}', '{descripcion}', '{sistema}', '{tipo}', '{gravedad}'))"
+            self.consultar(query_assert)
+            
+            # Actualizar archivo
+            self._actualizar_en_archivo_pl('enfermedad', id_enf, (id_enf, nombre, descripcion, sistema, tipo, gravedad))
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def eliminar_enfermedad(self, id_enf):
+        """Eliminar una enfermedad"""
+        try:
+            # Eliminar de Prolog en memoria
+            query = f"retract(enfermedad('{id_enf}', _, _, _, _, _))"
+            self.consultar(query)
+            
+            # Eliminar del archivo
+            self._eliminar_del_archivo_pl('enfermedad', id_enf)
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    # ==================== CRUD SÍNTOMAS ====================
+    
+    def agregar_sintoma(self, id_sintoma, nombre, descripcion, sistema):
+        """Agregar un nuevo síntoma"""
+        try:
+            # Verificar que no exista
+            query_check = f"sintoma('{id_sintoma}', _, _, _)"
+            existe = self.consultar(query_check)
+            if existe:
+                return {'success': False, 'error': f'El síntoma con ID {id_sintoma} ya existe'}
+            
+            # Agregar a Prolog
+            query = f"assertz(sintoma('{id_sintoma}', '{nombre}', '{descripcion}', '{sistema}'))"
+            self.consultar(query)
+            
+            # Guardar en archivo
+            self._agregar_al_archivo_pl('sintoma', (id_sintoma, nombre, descripcion, sistema))
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def editar_sintoma(self, id_sintoma, nombre, descripcion, sistema):
+        """Editar un síntoma existente"""
+        try:
+            query_retract = f"retract(sintoma('{id_sintoma}', _, _, _))"
+            self.consultar(query_retract)
+            
+            query_assert = f"assertz(sintoma('{id_sintoma}', '{nombre}', '{descripcion}', '{sistema}'))"
+            self.consultar(query_assert)
+            
+            self._actualizar_en_archivo_pl('sintoma', id_sintoma, (id_sintoma, nombre, descripcion, sistema))
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def eliminar_sintoma(self, id_sintoma):
+        """Eliminar un síntoma"""
+        try:
+            query = f"retract(sintoma('{id_sintoma}', _, _, _))"
+            self.consultar(query)
+            
+            self._eliminar_del_archivo_pl('sintoma', id_sintoma)
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    # ==================== CRUD MEDICAMENTOS ====================
+    
+    def agregar_medicamento(self, id_med, nombre, principio, tipo, descripcion):
+        """Agregar un nuevo medicamento"""
+        try:
+            query_check = f"medicamento('{id_med}', _, _, _, _)"
+            existe = self.consultar(query_check)
+            if existe:
+                return {'success': False, 'error': f'El medicamento con ID {id_med} ya existe'}
+            
+            query = f"assertz(medicamento('{id_med}', '{nombre}', '{principio}', '{tipo}', '{descripcion}'))"
+            self.consultar(query)
+            
+            self._agregar_al_archivo_pl('medicamento', (id_med, nombre, principio, tipo, descripcion))
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def editar_medicamento(self, id_med, nombre, principio, tipo, descripcion):
+        """Editar un medicamento existente"""
+        try:
+            query_retract = f"retract(medicamento('{id_med}', _, _, _, _))"
+            self.consultar(query_retract)
+            
+            query_assert = f"assertz(medicamento('{id_med}', '{nombre}', '{principio}', '{tipo}', '{descripcion}'))"
+            self.consultar(query_assert)
+            
+            self._actualizar_en_archivo_pl('medicamento', id_med, (id_med, nombre, principio, tipo, descripcion))
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def eliminar_medicamento(self, id_med):
+        """Eliminar un medicamento"""
+        try:
+            query = f"retract(medicamento('{id_med}', _, _, _, _))"
+            self.consultar(query)
+            
+            self._eliminar_del_archivo_pl('medicamento', id_med)
+            
+            self.recargar_base_conocimiento()
+            return {'success': True}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    # ==================== MÉTODOS AUXILIARES PARA ARCHIVO ====================
+    
+    def _agregar_al_archivo_pl(self, tipo, datos):
+        """Agregar un predicado al archivo Prolog"""
+        try:
+            with open(self.archivo_pl, 'r', encoding='utf-8') as f:
+                lineas = f.readlines()
+            
+            # Construir la nueva línea según el tipo
+            import re
+            if tipo == 'enfermedad':
+                nueva_linea = f"enfermedad({datos[0]}, '{datos[1]}', '{datos[2]}', '{datos[3]}', '{datos[4]}', '{datos[5]}').\n"
+                # Buscar justo antes del comentario "RELACIONES: ENFERMEDAD - SÍNTOMAS"
+                patron_siguiente_seccion = r'% RELACIONES: ENFERMEDAD - S[ÍI]NTOMAS'
+            elif tipo == 'sintoma':
+                nueva_linea = f"sintoma({datos[0]}, '{datos[1]}', '{datos[2]}', '{datos[3]}').\n"
+                # Buscar justo antes del comentario "HECHOS: ENFERMEDADES"
+                patron_siguiente_seccion = r'% HECHOS: ENFERMEDADES'
+            elif tipo == 'medicamento':
+                nueva_linea = f"medicamento({datos[0]}, '{datos[1]}', '{datos[2]}', '{datos[3]}', '{datos[4]}').\n"
+                # Buscar específicamente antes del comentario "RELACIONES: ENFERMEDAD - TRATAMIENTO"
+                patron_siguiente_seccion = r'% RELACIONES: ENFERMEDAD - TRATAMIENTO'
+            else:
+                return False
+            
+            # Encontrar la posición de inserción (antes del siguiente comentario de sección)
+            posicion_insercion = None
+            for i, linea in enumerate(lineas):
+                if re.search(patron_siguiente_seccion, linea):
+                    # Retroceder hasta encontrar una línea que no esté vacía o sea comentario
+                    for j in range(i-1, -1, -1):
+                        if lineas[j].strip() and not lineas[j].strip().startswith('%'):
+                            posicion_insercion = j + 1
+                            break
+                    break
+            
+            if posicion_insercion is not None:
+                # Insertar en la posición encontrada
+                lineas.insert(posicion_insercion, nueva_linea)
+            else:
+                # Si no se encuentra el patrón, buscar la última ocurrencia del tipo
+                ultima_linea = None
+                patron_tipo = None
+                if tipo == 'enfermedad':
+                    patron_tipo = r'^enfermedad\('
+                elif tipo == 'sintoma':
+                    patron_tipo = r'^sintoma\('
+                elif tipo == 'medicamento':
+                    patron_tipo = r'^medicamento\('
+                
+                if patron_tipo:
+                    for i, linea in enumerate(lineas):
+                        if re.match(patron_tipo, linea.strip()):
+                            ultima_linea = i
+                    if ultima_linea is not None:
+                        lineas.insert(ultima_linea + 1, nueva_linea)
+                    else:
+                        lineas.append(nueva_linea)
+                else:
+                    lineas.append(nueva_linea)
+            
+            # Guardar archivo
+            with open(self.archivo_pl, 'w', encoding='utf-8') as f:
+                f.writelines(lineas)
+            
+            return True
+        except Exception as e:
+            print(f"Error al agregar al archivo: {str(e)}")
+            return False
+    
+    def _actualizar_en_archivo_pl(self, tipo, id_entidad, nuevos_datos):
+        """Actualizar un predicado en el archivo Prolog"""
+        try:
+            with open(self.archivo_pl, 'r', encoding='utf-8') as f:
+                lineas = f.readlines()
+            
+            # Buscar y reemplazar la línea
+            import re
+            if tipo == 'enfermedad':
+                patron = re.compile(rf"enfermedad\({id_entidad},.*?\)\.")
+                nueva_linea = f"enfermedad({nuevos_datos[0]}, '{nuevos_datos[1]}', '{nuevos_datos[2]}', '{nuevos_datos[3]}', '{nuevos_datos[4]}', '{nuevos_datos[5]}').\n"
+            elif tipo == 'sintoma':
+                patron = re.compile(rf"sintoma\({id_entidad},.*?\)\.")
+                nueva_linea = f"sintoma({nuevos_datos[0]}, '{nuevos_datos[1]}', '{nuevos_datos[2]}', '{nuevos_datos[3]}').\n"
+            elif tipo == 'medicamento':
+                patron = re.compile(rf"medicamento\({id_entidad},.*?\)\.")
+                nueva_linea = f"medicamento({nuevos_datos[0]}, '{nuevos_datos[1]}', '{nuevos_datos[2]}', '{nuevos_datos[3]}', '{nuevos_datos[4]}').\n"
+            else:
+                return False
+            
+            # Reemplazar en las líneas
+            lineas_nuevas = []
+            for linea in lineas:
+                if patron.search(linea):
+                    lineas_nuevas.append(nueva_linea)
+                else:
+                    lineas_nuevas.append(linea)
+            
+            # Guardar archivo
+            with open(self.archivo_pl, 'w', encoding='utf-8') as f:
+                f.writelines(lineas_nuevas)
+            
+            return True
+        except Exception as e:
+            print(f"Error al actualizar archivo: {str(e)}")
+            return False
+    
+    def _eliminar_del_archivo_pl(self, tipo, id_entidad):
+        """Eliminar un predicado del archivo Prolog"""
+        try:
+            with open(self.archivo_pl, 'r', encoding='utf-8') as f:
+                lineas = f.readlines()
+            
+            # Buscar y eliminar la línea
+            import re
+            if tipo == 'enfermedad':
+                patron = re.compile(rf"enfermedad\({id_entidad},.*?\)\.")
+            elif tipo == 'sintoma':
+                patron = re.compile(rf"sintoma\({id_entidad},.*?\)\.")
+            elif tipo == 'medicamento':
+                patron = re.compile(rf"medicamento\({id_entidad},.*?\)\.")
+            else:
+                return False
+            
+            # Filtrar líneas que no coinciden
+            lineas_nuevas = [linea for linea in lineas if not patron.search(linea)]
+            
+            # Guardar archivo
+            with open(self.archivo_pl, 'w', encoding='utf-8') as f:
+                f.writelines(lineas_nuevas)
+            
+            return True
+        except Exception as e:
+            print(f"Error al eliminar del archivo: {str(e)}")
+            return False
 
 
 if __name__ == "__main__":

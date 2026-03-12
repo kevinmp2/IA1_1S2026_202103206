@@ -10,7 +10,16 @@ import {
   guardarArchivoProlog,
   procesarRPA,
   enviarCorreoRPA,
-  verificarCredencialesConfiguradas
+  verificarCredencialesConfiguradas,
+  crearEnfermedad,
+  editarEnfermedad,
+  eliminarEnfermedad,
+  crearSintoma,
+  editarSintoma,
+  eliminarSintoma,
+  crearMedicamento,
+  editarMedicamento,
+  eliminarMedicamento
 } from '../services/api';
 import './Administrador.css';
 
@@ -38,7 +47,20 @@ function Administrador() {
 
   // Modal states
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [enfermedadEditando, setEnfermedadEditando] = useState(null);
+  const [tipoModal, setTipoModal] = useState(''); // 'enfermedad', 'sintoma', 'medicamento'
+  const [modoModal, setModoModal] = useState('crear'); // 'crear' o 'editar'
+  const [itemEditando, setItemEditando] = useState(null);
+  
+  // Form states
+  const [formData, setFormData] = useState({
+    id: '',
+    nombre: '',
+    descripcion: '',
+    sistema: '',
+    tipo: '',
+    gravedad: '',
+    principio: ''
+  });
 
   useEffect(() => {
     // Verificar autenticación
@@ -289,16 +311,227 @@ function Administrador() {
     }
   };
 
+  // ==================== FUNCIONES MODALES ====================
+  
+  const abrirModal = (tipo, modo, item = null) => {
+    setTipoModal(tipo);
+    setModoModal(modo);
+    setItemEditando(item);
+    
+    if (modo === 'editar' && item) {
+      setFormData({
+        id: item.id || '',
+        nombre: item.nombre || '',
+        descripcion: item.descripcion || '',
+        sistema: item.sistema || '',
+        tipo: item.tipo || '',
+        gravedad: item.gravedad || '',
+        principio: item.principio || ''
+      });
+    } else {
+      setFormData({
+        id: '',
+        nombre: '',
+        descripcion: '',
+        sistema: '',
+        tipo: '',
+        gravedad: '',
+        principio: ''
+      });
+    }
+    
+    setMostrarModal(true);
+  };
+  
+  const cerrarModal = () => {
+    setMostrarModal(false);
+    setTipoModal('');
+    setModoModal('crear');
+    setItemEditando(null);
+    setFormData({
+      id: '',
+      nombre: '',
+      descripcion: '',
+      sistema: '',
+      tipo: '',
+      gravedad: '',
+      principio: ''
+    });
+  };
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleSubmitModal = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      let resultado;
+      
+      if (tipoModal === 'enfermedad') {
+        if (modoModal === 'crear') {
+          resultado = await crearEnfermedad(formData);
+        } else {
+          resultado = await editarEnfermedad(itemEditando.id, formData);
+        }
+        await cargarEnfermedades();
+      } else if (tipoModal === 'sintoma') {
+        if (modoModal === 'crear') {
+          resultado = await crearSintoma(formData);
+        } else {
+          resultado = await editarSintoma(itemEditando.id, formData);
+        }
+        await cargarSintomas();
+      } else if (tipoModal === 'medicamento') {
+        if (modoModal === 'crear') {
+          resultado = await crearMedicamento(formData);
+        } else {
+          resultado = await editarMedicamento(itemEditando.id, formData);
+        }
+        await cargarMedicamentos();
+      }
+      
+      if (resultado?.data?.success) {
+        toast.success(resultado.data.message || 'Operación exitosa');
+        cerrarModal();
+      } else {
+        toast.error(resultado?.data?.error || 'Error en la operación');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error(error.response?.data?.error || 'Error al procesar la solicitud');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==================== FUNCIONES ENFERMEDADES ====================
+
   const handleNuevaEnfermedad = () => {
-    toast.info('Funcionalidad en desarrollo. Por ahora puede editar el archivo Prolog directamente en la pestaña "Prolog"');
+    abrirModal('enfermedad', 'crear');
   };
 
   const handleEditarEnfermedad = (enf) => {
-    toast.info('Funcionalidad en desarrollo. Por ahora puede editar el archivo Prolog directamente en la pestaña "Prolog"');
+    abrirModal('enfermedad', 'editar', enf);
   };
 
-  const handleEliminarEnfermedad = (enf) => {
-    toast.info('Funcionalidad en desarrollo. Por ahora puede editar el archivo Prolog directamente en la pestaña "Prolog"');
+  const handleEliminarEnfermedad = async (enf) => {
+    if (window.confirm(`¿Está seguro de eliminar la enfermedad "${enf.nombre}"?`)) {
+      setLoading(true);
+      try {
+        const resultado = await eliminarEnfermedad(enf.id);
+        if (resultado?.data?.success) {
+          toast.success('Enfermedad eliminada correctamente');
+          await cargarEnfermedades();
+        } else {
+          toast.error(resultado?.data?.error || 'Error al eliminar');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error(error.response?.data?.error || 'Error al eliminar la enfermedad');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  
+  const cargarEnfermedades = async () => {
+    try {
+      const res = await obtenerEnfermedades();
+      if (res.data.success) {
+        setEnfermedades(res.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error al cargar enfermedades:', error);
+    }
+  };
+  
+  // ==================== FUNCIONES SÍNTOMAS ====================
+  
+  const handleNuevoSintoma = () => {
+    abrirModal('sintoma', 'crear');
+  };
+
+  const handleEditarSintoma = (sint) => {
+    abrirModal('sintoma', 'editar', sint);
+  };
+
+  const handleEliminarSintoma = async (sint) => {
+    if (window.confirm(`¿Está seguro de eliminar el síntoma "${sint.nombre}"?`)) {
+      setLoading(true);
+      try {
+        const resultado = await eliminarSintoma(sint.id);
+        if (resultado?.data?.success) {
+          toast.success('Síntoma eliminado correctamente');
+          await cargarSintomas();
+        } else {
+          toast.error(resultado?.data?.error || 'Error al eliminar');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error(error.response?.data?.error || 'Error al eliminar el síntoma');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  
+  const cargarSintomas = async () => {
+    try {
+      const res = await obtenerSintomas();
+      if (res.data.success) {
+        setSintomas(res.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error al cargar síntomas:', error);
+    }
+  };
+  
+  // ==================== FUNCIONES MEDICAMENTOS ====================
+  
+  const handleNuevoMedicamento = () => {
+    abrirModal('medicamento', 'crear');
+  };
+
+  const handleEditarMedicamento = (med) => {
+    abrirModal('medicamento', 'editar', med);
+  };
+
+  const handleEliminarMedicamento = async (med) => {
+    if (window.confirm(`¿Está seguro de eliminar el medicamento "${med.nombre}"?`)) {
+      setLoading(true);
+      try {
+        const resultado = await eliminarMedicamento(med.id);
+        if (resultado?.data?.success) {
+          toast.success('Medicamento eliminado correctamente');
+          await cargarMedicamentos();
+        } else {
+          toast.error(resultado?.data?.error || 'Error al eliminar');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error(error.response?.data?.error || 'Error al eliminar el medicamento');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  
+  const cargarMedicamentos = async () => {
+    try {
+      const res = await obtenerMedicamentos();
+      if (res.data.success) {
+        setMedicamentos(res.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error al cargar medicamentos:', error);
+    }
   };
 
   const renderEnfermedades = () => (
@@ -358,7 +591,7 @@ function Administrador() {
         <h2>Gestión de Síntomas</h2>
         <span className="count-badge">{sintomas.length} registros</span>
       </div>
-      <button className="btn btn-primary mb-20" onClick={() => toast.info('Funcionalidad en desarrollo')}>+ Nuevo Síntoma</button>
+      <button className="btn btn-primary mb-20" onClick={handleNuevoSintoma}>+ Nuevo Síntoma</button>
       
       {sintomas.length === 0 ? (
         <div className="alert alert-info">
@@ -384,8 +617,8 @@ function Administrador() {
                   <td>{sint.sistema}</td>
                   <td>{sint.descripcion}</td>
                   <td>
-                    <button className="btn btn-sm btn-secondary" onClick={() => toast.info('Funcionalidad en desarrollo')}>Editar</button>
-                    <button className="btn btn-sm btn-danger" onClick={() => toast.info('Funcionalidad en desarrollo')}>Eliminar</button>
+                    <button className="btn btn-sm btn-secondary" onClick={() => handleEditarSintoma(sint)}>Editar</button>
+                    <button className="btn btn-sm btn-danger" onClick={() => handleEliminarSintoma(sint)}>Eliminar</button>
                   </td>
                 </tr>
               ))}
@@ -402,7 +635,7 @@ function Administrador() {
         <h2>Gestión de Medicamentos</h2>
         <span className="count-badge">{medicamentos.length} registros</span>
       </div>
-      <button className="btn btn-primary mb-20" onClick={() => toast.info('Funcionalidad en desarrollo')}>+ Nuevo Medicamento</button>
+      <button className="btn btn-primary mb-20" onClick={handleNuevoMedicamento}>+ Nuevo Medicamento</button>
       
       {medicamentos.length === 0 ? (
         <div className="alert alert-info">
@@ -428,8 +661,8 @@ function Administrador() {
                   <td>{med.principio}</td>
                   <td>{med.tipo}</td>
                   <td>
-                    <button className="btn btn-sm btn-secondary" onClick={() => toast.info('Funcionalidad en desarrollo')}>Editar</button>
-                    <button className="btn btn-sm btn-danger" onClick={() => toast.info('Funcionalidad en desarrollo')}>Eliminar</button>
+                    <button className="btn btn-sm btn-secondary" onClick={() => handleEditarMedicamento(med)}>Editar</button>
+                    <button className="btn btn-sm btn-danger" onClick={() => handleEliminarMedicamento(med)}>Eliminar</button>
                   </td>
                 </tr>
               ))}
@@ -683,6 +916,166 @@ function Administrador() {
           {tabActiva === 'prolog' && renderProlog()}
           {tabActiva === 'rpa' && renderRPA()}
         </div>
+        
+        {/* Modal para CRUD */}
+        {mostrarModal && (
+          <div className="modal-overlay" onClick={cerrarModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>
+                  {modoModal === 'crear' ? 'Agregar' : 'Editar'} {tipoModal === 'enfermedad' ? 'Enfermedad' : tipoModal === 'sintoma' ? 'Síntoma' : 'Medicamento'}
+                </h2>
+                <button className="btn-close" onClick={cerrarModal}>×</button>
+              </div>
+              
+              <form onSubmit={handleSubmitModal}>
+                <div className="modal-body">
+                  {/* Campo ID */}
+                  <div className="form-group">
+                    <label>ID *</label>
+                    <input
+                      type="text"
+                      name="id"
+                      value={formData.id}
+                      onChange={handleInputChange}
+                      disabled={modoModal === 'editar'}
+                      required
+                      placeholder="Ej: e1, s1, m1"
+                    />
+                  </div>
+                  
+                  {/* Campo Nombre */}
+                  <div className="form-group">
+                    <label>Nombre *</label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={formData.nombre}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Nombre del elemento"
+                    />
+                  </div>
+                  
+                  {/* Campo Descripción */}
+                  <div className="form-group">
+                    <label>Descripción</label>
+                    <textarea
+                      name="descripcion"
+                      value={formData.descripcion}
+                      onChange={handleInputChange}
+                      rows="3"
+                      placeholder="Descripción detallada"
+                    />
+                  </div>
+                  
+                  {/* Campo Sistema */}
+                  <div className="form-group">
+                    <label>Sistema *</label>
+                    <select
+                      name="sistema"
+                      value={formData.sistema}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Seleccione un sistema</option>
+                      <option value="respiratorio">Respiratorio</option>
+                      <option value="digestivo">Digestivo</option>
+                      <option value="cardiovascular">Cardiovascular</option>
+                      <option value="nervioso">Nervioso</option>
+                      <option value="endocrino">Endocrino</option>
+                      <option value="muscular">Muscular</option>
+                      <option value="oseo">Óseo</option>
+                      <option value="inmunologico">Inmunológico</option>
+                      <option value="general">General</option>
+                    </select>
+                  </div>
+                  
+                  {/* Campos específicos para Enfermedad */}
+                  {tipoModal === 'enfermedad' && (
+                    <>
+                      <div className="form-group">
+                        <label>Tipo *</label>
+                        <select
+                          name="tipo"
+                          value={formData.tipo}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="">Seleccione un tipo</option>
+                          <option value="viral">Viral</option>
+                          <option value="bacteriana">Bacteriana</option>
+                          <option value="cronica">Crónica</option>
+                          <option value="degenerativa">Degenerativa</option>
+                          <option value="autoinmune">Autoinmune</option>
+                          <option value="genetica">Genética</option>
+                        </select>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Gravedad *</label>
+                        <select
+                          name="gravedad"
+                          value={formData.gravedad}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="">Seleccione gravedad</option>
+                          <option value="leve">Leve</option>
+                          <option value="moderada">Moderada</option>
+                          <option value="grave">Grave</option>
+                          <option value="critica">Crítica</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Campos específicos para Medicamento */}
+                  {tipoModal === 'medicamento' && (
+                    <>
+                      <div className="form-group">
+                        <label>Principio Activo</label>
+                        <input
+                          type="text"
+                          name="principio"
+                          value={formData.principio}
+                          onChange={handleInputChange}
+                          placeholder="Principio activo del medicamento"
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Tipo *</label>
+                        <select
+                          name="tipo"
+                          value={formData.tipo}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="">Seleccione un tipo</option>
+                          <option value="analgesico">Analgésico</option>
+                          <option value="antibiotico">Antibiótico</option>
+                          <option value="antiinflamatorio">Antiinflamatorio</option>
+                          <option value="antipiretico">Antipirético</option>
+                          <option value="antiviral">Antiviral</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={cerrarModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

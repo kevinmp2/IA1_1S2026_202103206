@@ -319,11 +319,28 @@ def editar_enfermedad(id):
     """Editar enfermedad existente"""
     try:
         data = request.get_json()
-        # TODO: Implementar lógica de edición
-        return jsonify({
-            'success': True,
-            'message': 'Funcionalidad en desarrollo'
-        })
+        
+        nombre = data.get('nombre')
+        descripcion = data.get('descripcion', '')
+        sistema = data.get('sistema')
+        tipo = data.get('tipo')
+        gravedad = data.get('gravedad')
+        
+        resultado = prolog_engine.editar_enfermedad(
+            id, nombre, descripcion, sistema, tipo, gravedad
+        )
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Enfermedad actualizada correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            }), 500
+            
     except Exception as e:
         return jsonify({
             'success': False,
@@ -335,11 +352,203 @@ def editar_enfermedad(id):
 def eliminar_enfermedad(id):
     """Eliminar enfermedad"""
     try:
-        # TODO: Implementar lógica de eliminación
+        resultado = prolog_engine.eliminar_enfermedad(id)
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Enfermedad eliminada correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            }), 500
+            
+    except Exception as e:
         return jsonify({
-            'success': True,
-            'message': 'Funcionalidad en desarrollo'
-        })
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+# ==================== ENDPOINTS SÍNTOMAS ====================
+
+@app.route('/api/admin/sintoma', methods=['POST'])
+def crear_sintoma():
+    """Crear nuevo síntoma"""
+    try:
+        data = request.get_json()
+        
+        id_sintoma = data.get('id')
+        nombre = data.get('nombre')
+        descripcion = data.get('descripcion', '')
+        sistema = data.get('sistema')
+        
+        resultado = prolog_engine.agregar_sintoma(
+            id_sintoma, nombre, descripcion, sistema
+        )
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Síntoma creado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error al crear síntoma')
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/admin/sintoma/<id>', methods=['PUT'])
+def editar_sintoma(id):
+    """Editar síntoma existente"""
+    try:
+        data = request.get_json()
+        
+        nombre = data.get('nombre')
+        descripcion = data.get('descripcion', '')
+        sistema = data.get('sistema')
+        
+        resultado = prolog_engine.editar_sintoma(
+            id, nombre, descripcion, sistema
+        )
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Síntoma actualizado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/admin/sintoma/<id>', methods=['DELETE'])
+def eliminar_sintoma(id):
+    """Eliminar síntoma"""
+    try:
+        resultado = prolog_engine.eliminar_sintoma(id)
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Síntoma eliminado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+# ==================== ENDPOINTS MEDICAMENTOS ====================
+
+@app.route('/api/admin/medicamento', methods=['POST'])
+def crear_medicamento():
+    """Crear nuevo medicamento"""
+    try:
+        data = request.get_json()
+        
+        id_med = data.get('id')
+        nombre = data.get('nombre')
+        principio = data.get('principio', '')
+        tipo = data.get('tipo')
+        descripcion = data.get('descripcion', '')
+        
+        resultado = prolog_engine.agregar_medicamento(
+            id_med, nombre, principio, tipo, descripcion
+        )
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Medicamento creado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error al crear medicamento')
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/admin/medicamento/<id>', methods=['PUT'])
+def editar_medicamento(id):
+    """Editar medicamento existente"""
+    try:
+        data = request.get_json()
+        
+        nombre = data.get('nombre')
+        principio = data.get('principio', '')
+        tipo = data.get('tipo')
+        descripcion = data.get('descripcion', '')
+        
+        resultado = prolog_engine.editar_medicamento(
+            id, nombre, principio, tipo, descripcion
+        )
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Medicamento actualizado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/admin/medicamento/<id>', methods=['DELETE'])
+def eliminar_medicamento(id):
+    """Eliminar medicamento"""
+    try:
+        resultado = prolog_engine.eliminar_medicamento(id)
+        
+        if resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Medicamento eliminado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            }), 500
+            
     except Exception as e:
         return jsonify({
             'success': False,

@@ -59,12 +59,28 @@ export const logout = () => {
 
 // ==================== MÓDULO ADMINISTRADOR ====================
 
+// Enfermedades
 export const crearEnfermedad = (data) => api.post('/admin/enfermedad', data);
 
 export const editarEnfermedad = (id, data) => api.put(`/admin/enfermedad/${id}`, data);
 
 export const eliminarEnfermedad = (id) => api.delete(`/admin/enfermedad/${id}`);
 
+// Síntomas
+export const crearSintoma = (data) => api.post('/admin/sintoma', data);
+
+export const editarSintoma = (id, data) => api.put(`/admin/sintoma/${id}`, data);
+
+export const eliminarSintoma = (id) => api.delete(`/admin/sintoma/${id}`);
+
+// Medicamentos
+export const crearMedicamento = (data) => api.post('/admin/medicamento', data);
+
+export const editarMedicamento = (id, data) => api.put(`/admin/medicamento/${id}`, data);
+
+export const eliminarMedicamento = (id) => api.delete(`/admin/medicamento/${id}`);
+
+// Prolog
 export const obtenerArchivoProlog = () => api.get('/admin/prolog');
 
 export const guardarArchivoProlog = (data) => api.post('/admin/prolog', data);

@@ -1,4 +1,15 @@
 % ==============================================================================
+% DECLARACIONES DINÁMICAS
+% ==============================================================================
+% Permitir modificación dinámica de predicados en tiempo de ejecución
+:- dynamic enfermedad/6.
+:- dynamic sintoma/4.
+:- dynamic medicamento/5.
+:- dynamic presenta_sintoma/3.
+:- dynamic trata_enfermedad/3.
+:- dynamic contraindicacion/3.
+
+% ==============================================================================
 % HECHOS: SÍNTOMAS
 % ==============================================================================
 % sintoma(ID, Nombre, Descripcion, Sistema)
@@ -15,8 +26,8 @@ sintoma(s10, 'Congestión nasal', 'Nariz tapada', 'respiratorio').
 sintoma(s11, 'Dolor muscular', 'Dolor en músculos', 'musculoesqueletico').
 sintoma(s12, 'Sudoración excesiva', 'Transpiración abundante', 'general').
 sintoma(s13, 'Mareo', 'Sensación de inestabilidad', 'neurologico').
-sintoma(s14, 'Dolor de pecho', 'Molestia torácica', 'cardiovascular').
-sintoma(s15, 'Dificultad para respirar', 'Disnea', 'respiratorio').
+sintoma(s15, 'Dificultad para respirar', 'Disnea', 'cardiovascular').
+sintoma(s16, 'dolor muscular', 'dolor muscular', 'muscular').
 
 % ==============================================================================
 % HECHOS: ENFERMEDADES
@@ -31,6 +42,9 @@ enfermedad(e5, 'Bronquitis', 'Inflamación de los bronquios', 'respiratorio', 'v
 enfermedad(e6, 'Neumonía', 'Infección pulmonar', 'respiratorio', 'bacterial', 'grave').
 enfermedad(e7, 'Faringitis', 'Inflamación de la faringe', 'respiratorio', 'viral', 'leve').
 enfermedad(e8, 'COVID-19', 'Enfermedad por coronavirus', 'respiratorio', 'viral', 'grave').
+enfermedad(e9, 'Neumonía Atípica', 'Infección pulmonar causada por agentes atípicos como Mycoplasma pneumoniae', 'respiratorio', 'bacterial', 'grave').
+enfermedad(e12, 'Bronquitis Aguda', 'Inflamación de los bronquios que transportan aire a los pulmones', 'respiratorio', 'viral', 'grave').
+enfermedad(e14, 'Ulcera gastrica', 'Ulcera gastrica', 'digestivo', 'viral', 'moderada').
 
 % ==============================================================================
 % RELACIONES: ENFERMEDAD - SÍNTOMAS
@@ -134,7 +148,7 @@ medicamento(m4, 'Omeprazol', 'Omeprazol', 'antiácido', 'Protector gástrico').
 medicamento(m5, 'Loratadina', 'Loratadina', 'antihistamínico', 'Para alergias').
 medicamento(m6, 'Dextrometorfano', 'Dextrometorfano', 'antitusivo', 'Supresor de tos').
 medicamento(m7, 'Suero oral', 'Sales de rehidratación', 'hidratante', 'Rehidratación').
-medicamento(m8, 'Azitromicina', 'Azitromicina', 'antibiotico', 'Antibiótico macrólido').
+medicamento(m8, 'Vitapirena', 'Acetaminofen', 'antiviral', 'Vitapirena, Canela').
 
 % ==============================================================================
 % RELACIONES: ENFERMEDAD - TRATAMIENTO
@@ -172,11 +186,6 @@ trata_enfermedad(m3, e7, 8).  % Amoxicilina
 
 % COVID-19
 trata_enfermedad(m1, e8, 7).
-enfermedad(e9, 'Neumonía Atípica', 'Infección pulmonar causada por agentes atípicos como Mycoplasma pneumoniae', 'respiratorio', 'bacterial', 'grave').
-enfermedad(e12, 'Bronquitis Aguda', 'Inflamación de los bronquios que transportan aire a los pulmones', 'respiratorio', 'viral', 'moderada').
-enfermedad(e13, 'Síndrome de Intestino Irritable', 'Trastorno funcional del aparato digestivo', 'digestivo', 'cronico', 'leve').
-enfermedad(e10, 'Gastritis Aguda', 'Inflamación repentina del revestimiento del estómago', 'digestivo', 'general', 'moderada').
-enfermedad(e11, 'Arritmia Cardíaca', 'Alteración del ritmo cardíaco normal', 'cardiovascular', 'cronico', 'grave').
 
 
 
