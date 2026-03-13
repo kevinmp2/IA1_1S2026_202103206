@@ -97,26 +97,6 @@ function Login() {
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
-
-          <div className="login-footer">
-            <p className="credentials-hint">
-              <strong>Credenciales de prueba:</strong>
-            </p>
-            <div className="credentials-list">
-              <div className="credential-item">
-                <div className="credential-role">👤 Administrador Sistema</div>
-                <div className="credential-info">
-                  Usuario: <code>admin</code> / Contraseña: <code>admin123</code>
-                </div>
-              </div>
-              <div className="credential-item">
-                <div className="credential-role">👨‍⚕️ Dr. Médico General</div>
-                <div className="credential-info">
-                  Usuario: <code>medico</code> / Contraseña: <code>medico123</code>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

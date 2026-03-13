@@ -13,7 +13,8 @@
 % HECHOS: SÍNTOMAS
 % ==============================================================================
 % sintoma(ID, Nombre, Descripcion, Sistema)
-sintoma(s2, 'Tos', 'Tos persistente', 'respiratorio').
+sintoma(s1, 'Fiebre', 'Temperatura corporal elevada', 'general').
+sintoma(s2, 'Tos', 'Tos seca o con flema', 'respiratorio').
 sintoma(s3, 'Dolor de cabeza', 'Cefalea o migraña', 'neurologico').
 sintoma(s4, 'Dolor de garganta', 'Irritación o dolor al tragar', 'respiratorio').
 sintoma(s5, 'Fatiga', 'Cansancio extremo', 'general').
@@ -33,6 +34,7 @@ sintoma(s16, 'dolor muscular', 'dolor muscular', 'muscular').
 % ==============================================================================
 % enfermedad(ID, Nombre, Descripcion, Sistema, Tipo, Gravedad)
 % Gravedad: leve, moderada, grave
+enfermedad(e1, 'Gripe', 'Infección viral del sistema respiratorio', 'respiratorio', 'viral', 'moderada').
 enfermedad(e2, 'Resfriado común', 'Infección viral leve de vías respiratorias', 'respiratorio', 'viral', 'leve').
 enfermedad(e3, 'Gastroenteritis', 'Inflamación del tracto gastrointestinal', 'digestivo', 'viral', 'moderada').
 enfermedad(e4, 'Migraña', 'Dolor de cabeza intenso', 'neurologico', 'cronico', 'moderada').
@@ -125,21 +127,6 @@ presenta_sintoma(e10, s9, 7).
 % Arritmia Cardíaca (e11)
 presenta_sintoma(e11, s11, 7).
 presenta_sintoma(e11, s14, 7).
-presenta_sintoma(e1, s1, 9).
-presenta_sintoma(e1, s2, 7).
-
-% Gastritis Aguda (e10)
-presenta_sintoma(e10, s6, 7).
-presenta_sintoma(e10, s9, 7).
-
-% Arritmia Cardíaca (e11)
-presenta_sintoma(e11, s11, 7).
-presenta_sintoma(e11, s14, 7).
-
-% Síndrome de Intestino Irritable (e13)
-presenta_sintoma(e13, s6, 7).
-presenta_sintoma(e13, s9, 7).
-
 
 
 
@@ -154,13 +141,14 @@ presenta_sintoma(e13, s9, 7).
 % HECHOS: MEDICAMENTOS
 % ==============================================================================
 % medicamento(ID, Nombre, Principio, Tipo, Descripcion)
-medicamento(m1, 'Paracetamol', 'Paracetamol', 'analgesico', 'Alivia fiebre y dolor').
+medicamento(m1, 'Paracetamol', 'Paracetamol', 'analgesico', 'Reduce fiebre y dolor').
 medicamento(m2, 'Ibuprofeno', 'Ibuprofeno', 'antiinflamatorio', 'Reduce inflamación y dolor').
 medicamento(m3, 'Amoxicilina', 'Amoxicilina', 'antibiotico', 'Antibiótico de amplio espectro').
 medicamento(m4, 'Omeprazol', 'Omeprazol', 'antiácido', 'Protector gástrico').
 medicamento(m5, 'Loratadina', 'Loratadina', 'antihistamínico', 'Para alergias').
 medicamento(m6, 'Dextrometorfano', 'Dextrometorfano', 'antitusivo', 'Supresor de tos').
 medicamento(m7, 'Suero oral', 'Sales de rehidratación', 'hidratante', 'Rehidratación').
+medicamento(m8, 'Vitapirena', 'Acetaminofen', 'antiviral', 'Vitapirena, Canela').
 
 % ==============================================================================
 % RELACIONES: ENFERMEDAD - TRATAMIENTO
@@ -198,11 +186,6 @@ trata_enfermedad(m3, e7, 8).  % Amoxicilina
 
 % COVID-19
 trata_enfermedad(m1, e8, 7).
-trata_enfermedad(m1, e1, 8).
-enfermedad(e10, 'Gastritis Aguda', 'Inflamación repentina del revestimiento del estómago', 'digestivo', 'general', 'moderada').
-enfermedad(e11, 'Arritmia Cardíaca', 'Alteración del ritmo cardíaco normal', 'cardiovascular', 'cronico', 'grave').
-enfermedad(e13, 'Síndrome de Intestino Irritable', 'Trastorno funcional del aparato digestivo', 'digestivo', 'cronico', 'leve').
-
 
 
 
@@ -298,4 +281,3 @@ diagnosticar(ListaSintomas, Alergias, EnfermedadesCronicas, Diagnosticos) :-
 % ==============================================================================
 % FIN DEL ARCHIVO
 % ==============================================================================
-contraindicacion(m1, e1, 'Evitar dosis altas en pacientes con dano hepatico').

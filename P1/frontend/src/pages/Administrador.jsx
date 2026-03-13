@@ -8,6 +8,7 @@ import {
   obtenerMedicamentos,
   obtenerArchivoProlog,
   guardarArchivoProlog,
+  cargarArchivoProlog,
   procesarRPA,
   enviarCorreoRPA,
   verificarCredencialesConfiguradas,
@@ -44,6 +45,8 @@ function Administrador() {
     password: false
   });
   const [nombreArchivoSeleccionado, setNombreArchivoSeleccionado] = useState('');
+  const [archivoPrologSeleccionado, setArchivoPrologSeleccionado] = useState(null);
+  const [nombreArchivoPrologSeleccionado, setNombreArchivoPrologSeleccionado] = useState('');
 
   // Modal states
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -167,6 +170,80 @@ function Administrador() {
       }
     } catch (error) {
       toast.error('Error al guardar: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportarProlog = () => {
+    if (!codigoProlog) {
+      toast.warning('No hay contenido para exportar');
+      return;
+    }
+    const blob = new Blob([codigoProlog], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'medilogic.pl';
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Archivo medilogic.pl exportado correctamente');
+  };
+
+  const handleSeleccionarArchivoProlog = (event) => {
+    const archivo = event.target.files[0];
+
+    if (!archivo) {
+      setArchivoPrologSeleccionado(null);
+      setNombreArchivoPrologSeleccionado('');
+      return;
+    }
+
+    if (!archivo.name.toLowerCase().endsWith('.pl')) {
+      toast.warning('Por favor seleccione un archivo Prolog (.pl)');
+      event.target.value = '';
+      setArchivoPrologSeleccionado(null);
+      setNombreArchivoPrologSeleccionado('');
+      return;
+    }
+
+    setArchivoPrologSeleccionado(archivo);
+    setNombreArchivoPrologSeleccionado(archivo.name);
+  };
+
+  const handleCargarArchivoProlog = async () => {
+    if (!archivoPrologSeleccionado) {
+      toast.warning('Seleccione un archivo .pl primero');
+      return;
+    }
+
+    const confirmar = window.confirm(
+      'Esta acción fusionará el archivo cargado con la base actual. ¿Desea continuar?'
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await cargarArchivoProlog(archivoPrologSeleccionado);
+      if (response.data.success) {
+        setCodigoProlog(response.data.data?.contenido || '');
+        await cargarDatos();
+        const insertados = response.data.data?.insertados ?? 0;
+        const actualizados = response.data.data?.actualizados ?? 0;
+        toast.success(`Fusión completada: ${insertados} insertados, ${actualizados} actualizados`);
+
+        setArchivoPrologSeleccionado(null);
+        setNombreArchivoPrologSeleccionado('');
+        const input = document.getElementById('file-upload-prolog');
+        if (input) {
+          input.value = '';
+        }
+      }
+    } catch (error) {
+      toast.error('Error al cargar archivo .pl: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -677,6 +754,39 @@ function Administrador() {
     <div className="tab-content">
       <h2>Editor de Archivo Prolog</h2>
       <p className="subtitle">Edite directamente el archivo de base de conocimiento</p>
+
+      <div className="card mb-20">
+        <h3>Cargar archivo .pl</h3>
+        <p>Seleccione un archivo Prolog para fusionarlo con la base actual y recargar el conocimiento.</p>
+
+        <div className="form-group">
+          <label className="form-label">📁 Archivo .pl:</label>
+          <div className="file-upload-wrapper">
+            <input
+              type="file"
+              id="file-upload-prolog"
+              accept=".pl"
+              onChange={handleSeleccionarArchivoProlog}
+              className="file-upload-input"
+            />
+            <label htmlFor="file-upload-prolog" className="file-upload-label">
+              <span className="file-upload-icon">📂</span>
+              <span>Seleccionar archivo .pl</span>
+            </label>
+          </div>
+          {nombreArchivoPrologSeleccionado && (
+            <div className="file-name-display">{nombreArchivoPrologSeleccionado}</div>
+          )}
+        </div>
+
+        <button
+          className="btn btn-primary"
+          onClick={handleCargarArchivoProlog}
+          disabled={loading || !archivoPrologSeleccionado}
+        >
+          ⬆️ Fusionar y Actualizar Base
+        </button>
+      </div>
       
       <textarea
         className="prolog-editor"
@@ -688,6 +798,13 @@ function Administrador() {
       <div className="flex gap-10 mt-20">
         <button
           className="btn btn-success"
+          onClick={handleExportarProlog}
+          disabled={loading}
+        >
+          📥 Exportar .pl
+        </button>
+        <button
+          className="btn btn-primary"
           onClick={handleGuardarProlog}
           disabled={loading}
         >

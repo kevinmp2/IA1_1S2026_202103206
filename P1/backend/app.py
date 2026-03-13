@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
 import sys
+import re
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -612,6 +613,199 @@ def guardar_archivo_prolog():
         
     except Exception as e:
         print(f"Error en /api/admin/prolog POST: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/admin/prolog/upload', methods=['POST'])
+def cargar_archivo_prolog():
+    """Cargar un archivo .pl y fusionarlo con la base de conocimiento actual"""
+    try:
+        if 'archivo' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No se recibió ningún archivo'
+            }), 400
+
+        archivo = request.files['archivo']
+
+        if not archivo or not archivo.filename:
+            return jsonify({
+                'success': False,
+                'error': 'Archivo inválido'
+            }), 400
+
+        if not archivo.filename.lower().endswith('.pl'):
+            return jsonify({
+                'success': False,
+                'error': 'Solo se permiten archivos .pl'
+            }), 400
+
+        # Obtener ruta absoluta del archivo Prolog
+        ruta_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        archivo_pl = os.path.join(ruta_base, 'base_conocimiento', 'medilogic.pl')
+
+        # Crear respaldo antes de sobrescribir
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        respaldo = os.path.join(ruta_base, 'base_conocimiento', f'medilogic_backup_{timestamp}.pl')
+
+        if os.path.exists(archivo_pl):
+            with open(archivo_pl, 'r', encoding='utf-8') as f_origen:
+                contenido_origen = f_origen.read()
+            with open(respaldo, 'w', encoding='utf-8') as f_respaldo:
+                f_respaldo.write(contenido_origen)
+
+        # Guardar nuevo archivo
+        contenido_bytes = archivo.read()
+        try:
+            contenido = contenido_bytes.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            return jsonify({
+                'success': False,
+                'error': 'El archivo no está en UTF-8 válido'
+            }), 400
+
+        if not contenido.strip():
+            return jsonify({
+                'success': False,
+                'error': 'El archivo está vacío'
+            }), 400
+
+        # Parsear hechos del archivo cargado
+        predicados_soportados = {
+            'sintoma',
+            'enfermedad',
+            'medicamento',
+            'presenta_sintoma',
+            'trata_enfermedad',
+            'contraindicacion'
+        }
+        predicados_entidad = {'sintoma', 'enfermedad', 'medicamento'}
+        orden_predicados = [
+            'sintoma',
+            'enfermedad',
+            'medicamento',
+            'presenta_sintoma',
+            'trata_enfermedad',
+            'contraindicacion'
+        ]
+
+        hechos_cargados = {p: [] for p in orden_predicados}
+        vistos = {p: set() for p in orden_predicados}
+
+        for linea in contenido.splitlines():
+            linea_limpia = linea.strip()
+            if not linea_limpia or linea_limpia.startswith('%') or linea_limpia.startswith(':-'):
+                continue
+
+            match = re.match(r'^([a-z_][a-zA-Z0-9_]*)\((.*)\)\.$', linea_limpia)
+            if not match:
+                continue
+
+            predicado = match.group(1)
+            if predicado not in predicados_soportados:
+                continue
+
+            # Evitar duplicados exactos dentro del archivo cargado
+            if linea_limpia in vistos[predicado]:
+                continue
+
+            vistos[predicado].add(linea_limpia)
+            argumentos = match.group(2)
+            id_primario = argumentos.split(',', 1)[0].strip() if ',' in argumentos else argumentos.strip()
+
+            hechos_cargados[predicado].append({
+                'linea': linea_limpia,
+                'id': id_primario
+            })
+
+        if all(len(hechos_cargados[p]) == 0 for p in hechos_cargados):
+            return jsonify({
+                'success': False,
+                'error': 'El archivo no contiene hechos Prolog soportados para fusionar'
+            }), 400
+
+        # Leer base actual y fusionar
+        with open(archivo_pl, 'r', encoding='utf-8') as f_actual:
+            lineas_actuales = f_actual.readlines()
+
+        def _buscar_ultima_linea_predicado(predicado):
+            idx = None
+            patron = re.compile(rf'^\s*{predicado}\(.*\)\.$')
+            for i, ln in enumerate(lineas_actuales):
+                if patron.match(ln.strip()):
+                    idx = i
+            return idx
+
+        def _existe_linea_exacta(linea_facto):
+            objetivo = linea_facto.strip()
+            for ln in lineas_actuales:
+                if ln.strip() == objetivo:
+                    return True
+            return False
+
+        insertados = 0
+        actualizados = 0
+
+        for predicado in orden_predicados:
+            for hecho in hechos_cargados[predicado]:
+                linea_nueva = hecho['linea'] + '\n'
+
+                if predicado in predicados_entidad:
+                    # Para entidades: actualizar por ID si existe, insertar si no existe
+                    patron_id = re.compile(rf'^\s*{predicado}\(\s*{re.escape(hecho["id"])}\s*,.*\)\.$')
+                    indice_existente = None
+                    for i, ln in enumerate(lineas_actuales):
+                        if patron_id.match(ln.strip()):
+                            indice_existente = i
+                            break
+
+                    if indice_existente is not None:
+                        lineas_actuales[indice_existente] = linea_nueva
+                        actualizados += 1
+                    else:
+                        idx_ultimo = _buscar_ultima_linea_predicado(predicado)
+                        if idx_ultimo is not None:
+                            lineas_actuales.insert(idx_ultimo + 1, linea_nueva)
+                        else:
+                            lineas_actuales.append(linea_nueva)
+                        insertados += 1
+                else:
+                    # Para relaciones: agregar solo si no existe exactamente
+                    if not _existe_linea_exacta(hecho['linea']):
+                        idx_ultimo = _buscar_ultima_linea_predicado(predicado)
+                        if idx_ultimo is not None:
+                            lineas_actuales.insert(idx_ultimo + 1, linea_nueva)
+                        else:
+                            lineas_actuales.append(linea_nueva)
+                        insertados += 1
+
+        # Persistir archivo fusionado
+        with open(archivo_pl, 'w', encoding='utf-8') as f_final:
+            f_final.writelines(lineas_actuales)
+
+        # Recargar base de conocimiento
+        prolog_engine.recargar_base_conocimiento()
+
+        with open(archivo_pl, 'r', encoding='utf-8') as f_final:
+            contenido_fusionado = f_final.read()
+
+        return jsonify({
+            'success': True,
+            'message': 'Archivo .pl fusionado con la base actual y recargado correctamente',
+            'data': {
+                'contenido': contenido_fusionado,
+                'archivo_original': archivo.filename,
+                'respaldo': os.path.basename(respaldo),
+                'insertados': insertados,
+                'actualizados': actualizados
+            }
+        })
+
+    except Exception as e:
+        print(f"Error en /api/admin/prolog/upload: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)

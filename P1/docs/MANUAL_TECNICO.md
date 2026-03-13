@@ -11,12 +11,11 @@
 4. [Módulos del Sistema](#módulos-del-sistema)
 5. [Motor de Inferencia](#motor-de-inferencia)
 6. [Integración Python-Prolog](#integración-python-prolog)
-7. [Generación de PDF](#generación-de-pdf)
-8. [Módulo RPA](#módulo-rpa)
-9. [Flujo de Datos](#flujo-de-datos)
-10. [Consideraciones de Diseño](#consideraciones-de-diseño)
-11. [Extensión y Mantenimiento](#extensión-y-mantenimiento)
-12. [Pruebas](#pruebas)
+7. [Módulo RPA](#módulo-rpa)
+8. [Flujo de Datos](#flujo-de-datos)
+9. [Consideraciones de Diseño](#consideraciones-de-diseño)
+10. [Decisiones de Diseño](#decisiones-de-diseño)
+11. [Generación de PDF](#generación-de-pdf)
 
 ---
 
@@ -28,15 +27,14 @@ MediLogic implementa una arquitectura de **tres capas**:
 ```
 ┌─────────────────────────────────────────┐
 │      CAPA DE PRESENTACIÓN (UI)          │
-│    Tkinter - Interfaz Gráfica           │
+│    React + Vite (SPA Web)               │
 └────────────────┬────────────────────────┘
                  │
 ┌────────────────▼────────────────────────┐
 │      CAPA DE LÓGICA DE NEGOCIO          │
-│    Python - Controladores               │
-│    - ModuloPaciente                     │
-│    - ModuloAdministrador                │
-│    - RPA_MediLogic                      │
+│    Flask (REST API)                     │
+│    - Endpoints Paciente/Admin           │
+│    - Orquestación Prolog/PDF/RPA        │
 └────────────────┬────────────────────────┘
                  │
 ┌────────────────▼────────────────────────┐
@@ -49,16 +47,18 @@ MediLogic implementa una arquitectura de **tres capas**:
 ### Componentes Principales
 
 #### 1. Frontend (UI)
-- **Framework**: Tkinter
-- **Patrón**: Page/Frame switching
+- **Stack**: React 18 + Vite
+- **Patrón**: SPA con `react-router-dom`
 - **Componentes**:
-  - `PantallaInicio`: Menú principal
-  - `ModuloPaciente`: Interfaz de diagnóstico
-  - `ModuloAdministrador`: Panel de gestión
+    - `Home`: Página de inicio y acceso a módulos
+    - `Paciente`: Flujo de captura de síntomas y diagnóstico
+    - `Login`: Autenticación del administrador
+    - `Administrador`: CRUD, editor Prolog y RPA
 
 #### 2. Backend (Lógica de Negocio)
-- **Lenguaje**: Python 3.8+
+- **Stack**: Flask + Python 3.8+
 - **Componentes**:
+    - `app.py`: API REST y validación de entrada
   - `PrologEngine`: Interfaz Python-Prolog
   - `PDFGenerator`: Generación de informes
   - `RPA_MediLogic`: Automatización de procesos
@@ -73,12 +73,11 @@ MediLogic implementa una arquitectura de **tres capas**:
 ## Tecnologías Utilizadas
 
 ### Python 3.8+
-**Justificación**: Lenguaje versátil con excelentes bibliotecas para IA y GUI.
+**Justificación**: Lenguaje versátil con excelentes bibliotecas para IA simbólica, APIs y automatización.
 
 **Bibliotecas principales**:
 ```python
 pyswip==0.2.11         # Interfaz Python-Prolog
-tkinter                # GUI (incluido con Python)
 pyautogui==0.9.54      # RPA y automatización
 reportlab==4.0.9       # Generación de PDF
 ```
@@ -92,15 +91,6 @@ reportlab==4.0.9       # Generación de PDF
 - Backtracking
 - Reglas de inferencia
 - Predicados dinámicos
-
-### Tkinter
-**Justificación**: 
-- Incluido con Python (sin dependencias extra)
-- Multiplataforma
-- Suficiente para aplicaciones de escritorio
-
-### PyAutoGUI
-**Justificación**: Automatización de procesos (RPA) requerida por el proyecto.
 
 ### ReportLab
 **Justificación**: Generación de PDF profesionales con control total sobre el diseño.
@@ -299,333 +289,80 @@ diagnosticar(SintomasPaciente, Alergias, Cronicas, Diagnosticos) :-
 
 ## Módulos del Sistema
 
-### 1. `main.py` - Aplicación Principal
+### 1. `backend/app.py` - API Principal
 
-```python
-class MediLogicApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("MediLogic")
-        self.geometry("1200x800")
-        
-        # Inicializar motor Prolog
-        self.prolog_engine = PrologEngine()
-        
-        # Container para frames
-        self.container = ttk.Frame(self)
-        self.container.pack(fill='both', expand=True)
-        
-        # Diccionario de frames
-        self.frames = {}
-        
-        # Crear frames
-        self.crear_frames()
-        
-        # Mostrar inicio
-        self.mostrar_frame("Inicio")
-    
-    def crear_frames(self):
-        """Crear todos los frames de la aplicación"""
-        frames_clases = {
-            "Inicio": PantallaInicio,
-            "Paciente": ModuloPaciente,
-            "Administrador": ModuloAdministrador
-        }
-        
-        for nombre, Clase in frames_clases.items():
-            frame = Clase(
-                parent=self.container,
-                controller=self,
-                prolog_engine=self.prolog_engine
-            )
-            self.frames[nombre] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-    
-    def mostrar_frame(self, nombre):
-        """Mostrar un frame específico"""
-        frame = self.frames[nombre]
-        frame.tkraise()
-        if hasattr(frame, 'refresh'):
-            frame.refresh()
-```
-
-**Patrón**: Frame switching
-**Responsabilidades**:
-- Gestionar ventana principal
-- Inicializar motor Prolog
-- Coordinar navegación entre módulos
-- Compartir instancia de PrologEngine
-
-### 2. `prolog_engine.py` - Motor de Inferencia
-
-```python
-class PrologEngine:
-    def __init__(self):
-        self.prolog = Prolog()
-        self.archivo_pl = os.path.join(
-            os.path.dirname(__file__),
-            '..', '..', 'base_conocimiento', 'medilogic.pl'
-        )
-        self.cargar_base_conocimiento()
-    
-    def cargar_base_conocimiento(self):
-        """Cargar archivo Prolog"""
-        try:
-            self.prolog.consult(self.archivo_pl)
-            return True
-        except Exception as e:
-            print(f"Error al cargar base de conocimiento: {e}")
-            return False
-    
-    def consultar(self, consulta):
-        """Ejecutar consulta genérica"""
-        try:
-            return list(self.prolog.query(consulta))
-        except Exception as e:
-            print(f"Error en consulta: {e}")
-            return []
-    
-    def diagnosticar(self, sintomas, alergias, cronicas):
-        """
-        Realizar diagnóstico
-        
-        Args:
-            sintomas: [(id, nombre, severidad), ...]
-            alergias: [alergia1, alergia2, ...]
-            cronicas: [id1, id2, ...]
-        
-        Returns:
-            Lista de diagnósticos ordenados por afinidad
-        """
-        # Construir consulta Prolog
-        sintomas_prolog = [f"({sid}, {sev})" 
-                          for sid, _, sev in sintomas]
-        sintomas_str = f"[{', '.join(sintomas_prolog)}]"
-        
-        alergias_str = f"[{', '.join(alergias)}]" if alergias else "[]"
-        cronicas_str = f"[{', '.join(cronicas)}]" if cronicas else "[]"
-        
-        consulta = f"""
-            diagnosticar(
-                {sintomas_str},
-                {alergias_str},
-                {cronicas_str},
-                Diagnosticos
-            )
-        """
-        
-        resultado = self.consultar(consulta)
-        return resultado
-```
+`app.py` centraliza la API REST y conecta frontend, motor Prolog y servicios auxiliares.
 
 **Responsabilidades**:
-- Inicializar SWI-Prolog
-- Cargar base de conocimiento
-- Construir consultas Prolog desde Python
-- Procesar resultados
+- Exponer endpoints de paciente (`/api/sintomas`, `/api/diagnosticar`, `/api/generar-pdf`)
+- Exponer endpoints de administración (`/api/admin/*`)
+- Validar payloads y responder JSON uniforme (`success`, `data`, `error`)
+- Coordinar llamadas a `PrologEngine`, `PDFGenerator` y `RPA_MediLogic`
+
+### 2. `backend/src/utils/prolog_engine.py` - Motor de Inferencia
+
+**Responsabilidades**:
+- Cargar y recargar `base_conocimiento/medilogic.pl`
+- Ejecutar consultas SWI-Prolog desde Python
+- Convertir estructuras Python a términos Prolog
+- Gestionar CRUD de hechos y relaciones dinámicas
 
 **Consideraciones**:
-- Manejo de excepciones robusto
+- Manejo de excepciones en consultas
 - Conversión de tipos Python ↔ Prolog
-- Escapado de caracteres especiales
+- Persistencia consistente del archivo `.pl`
 
-### 3. `paciente.py` - Módulo de Paciente
+### 3. `frontend/src/App.jsx` - Enrutamiento de la SPA
 
-**Componentes principales**:
+**Rutas principales**:
+- `/` → Inicio (`Home`)
+- `/paciente` → Flujo de diagnóstico
+- `/login` → Inicio de sesión de administrador
+- `/admin` → Panel administrativo
 
-```python
-class ModuloPaciente(ttk.Frame):
-    def __init__(self, parent, controller, prolog_engine):
-        super().__init__(parent)
-        self.controller = controller
-        self.prolog_engine = prolog_engine
-        
-        # Variables de formulario
-        self.sintomas_vars = {}       # {sintoma_id: BooleanVar}
-        self.severidad_vars = {}      # {sintoma_id: StringVar}
-        self.cronicas_vars = {}       # {cronica_id: BooleanVar}
-        
-        # Historial
-        self.historial_diagnosticos = []
-        
-        self.crear_widgets()
-```
+**Responsabilidades**:
+- Montar navegación con `react-router-dom`
+- Mantener layout compartido (`Navbar` + contenido)
+- Mostrar notificaciones globales con `react-toastify`
 
-**Flujo de diagnóstico**:
-1. Usuario selecciona síntomas y severidad
-2. Usuario ingresa alergias y selecciona crónicas
-3. Click en "Realizar Diagnóstico"
-4. `realizar_diagnostico()` recopila datos
-5. Llama a `prolog_engine.diagnosticar()`
-6. `mostrar_resultados()` presenta diagnósticos
-7. Usuario puede descargar PDF
+### 4. `frontend/src/pages/Paciente.jsx` - Módulo Paciente
 
-### 4. `admin.py` - Módulo de Administrador
+**Responsabilidades**:
+- Obtener catálogos clínicos (síntomas y crónicas)
+- Capturar síntomas y severidad
+- Enviar solicitud de diagnóstico (`POST /api/diagnosticar`)
+- Mostrar resultados con afinidad y recomendaciones
+- Descargar PDF de resultados (`POST /api/generar-pdf`)
 
-**Autenticación**:
-```python
-USUARIOS = {
-    'admin': 'admin123',
-    'medico': 'medico123'
-}
+**Flujo**:
+1. Usuario completa formulario clínico.
+2. Frontend envía payload JSON al backend.
+3. Backend consulta Prolog y calcula afinidades.
+4. Frontend renderiza diagnósticos y urgencia.
 
-def autenticar(self):
-    usuario = self.usuario_entry.get()
-    password = self.password_entry.get()
-    
-    if usuario in self.USUARIOS and \
-       self.USUARIOS[usuario] == password:
-        self.autenticado = True
-        self.usuario_actual = usuario
-        self.crear_widgets()
-    else:
-        messagebox.showerror(
-            "Error",
-            "Credenciales incorrectas"
-        )
-```
+### 5. `frontend/src/pages/Administrador.jsx` - Módulo Administrador
 
-**CRUD de Enfermedades** (ejemplo):
-```python
-def nueva_enfermedad(self):
-    # Ventana de diálogo
-    ventana = tk.Toplevel(self)
-    
-    # Campos de entrada
-    ttk.Label(ventana, text="ID:").grid(row=0, column=0)
-    id_entry = ttk.Entry(ventana)
-    id_entry.grid(row=0, column=1)
-    
-    # ... más campos ...
-    
-    def guardar():
-        # Recopilar datos
-        id_enf = id_entry.get()
-        nombre = nombre_entry.get()
-        # ...
-        
-        # Agregar a Prolog
-        self.prolog_engine.agregar_enfermedad(...)
-        
-        # Actualizar lista
-        self.actualizar_lista_enfermedades()
-        
-        ventana.destroy()
-    
-    ttk.Button(ventana, text="Guardar", 
-               command=guardar).grid(...)
-```
+**Responsabilidades**:
+- Autenticar usuario administrador (`POST /api/login`)
+- Ejecutar CRUD de enfermedades, síntomas y medicamentos
+- Gestionar relaciones clínicas
+- Editar, guardar, importar y exportar `medilogic.pl`
+- Ejecutar funciones RPA y envío de informe por correo
 
-### 5. `rpa.py` - Automatización RPA
+### 6. `backend/src/modulos/rpa.py` - Automatización RPA
 
-**Carga de archivo**:
-```python
-def cargar_enfermedades_desde_archivo(self, archivo_txt):
-    enfermedades = []
-    enfermedad_actual = {}
-    
-    with open(archivo_txt, 'r', encoding='utf-8') as f:
-        for linea in f:
-            linea = linea.strip()
-            
-            if linea == '---':
-                if enfermedad_actual:
-                    enfermedades.append(enfermedad_actual.copy())
-                    enfermedad_actual = {}
-            elif ':' in linea and linea != 'ENFERMEDAD':
-                clave, valor = linea.split(':', 1)
-                enfermedad_actual[clave.strip()] = valor.strip()
-        
-        # Última enfermedad
-        if enfermedad_actual:
-            enfermedades.append(enfermedad_actual)
-    
-    return enfermedades
-```
+**Funciones clave**:
+- Parseo de archivos de carga de enfermedades
+- Clasificación y validación de registros
+- Generación de informe de carga
+- Envío por SMTP de resultados
 
-**Envío de correo**:
-```python
-def enviar_informe_por_correo(self, archivo_informe, 
-                               destinatarios, remitente, password):
-    msg = MIMEMultipart()
-    msg['From'] = remitente
-    msg['To'] = ', '.join(destinatarios)
-    msg['Subject'] = f"Informe MediLogic {datetime.now()}"
-    
-    # Cuerpo
-    cuerpo = "Se adjunta informe de carga RPA..."
-    msg.attach(MIMEText(cuerpo, 'plain'))
-    
-    # Adjuntar archivo
-    with open(archivo_informe, 'r', encoding='utf-8') as f:
-        contenido = f.read()
-    adjunto = MIMEText(contenido, 'plain', 'utf-8')
-    adjunto.add_header('Content-Disposition', 
-                       'attachment', 
-                       filename='informe_carga.txt')
-    msg.attach(adjunto)
-    
-    # Enviar
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login(remitente, password)
-    server.send_message(msg)
-    server.quit()
-```
+### 7. `backend/src/utils/pdf_generator.py` - Generación de PDF
 
-### 6. `pdf_generator.py` - Generación de PDF
-
-```python
-class PDFGenerator:
-    def generar_informe_diagnostico(self, archivo, 
-                                     datos_paciente, 
-                                     diagnosticos):
-        doc = SimpleDocTemplate(archivo, pagesize=letter)
-        story = []
-        
-        # Estilos
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=24,
-            textColor=colors.HexColor('#2C3E50'),
-            spaceAfter=30,
-            alignment=TA_CENTER
-        )
-        
-        # Título
-        story.append(Paragraph("INFORME MÉDICO", title_style))
-        story.append(Spacer(1, 12))
-        
-        # Datos del paciente
-        data = [
-            ['Fecha:', datos_paciente['fecha']],
-            ['Hora:', datos_paciente['hora']],
-            ['Síntomas:', len(datos_paciente['sintomas'])],
-            ['Alergias:', ', '.join(datos_paciente['alergias'])]
-        ]
-        
-        tabla = Table(data, colWidths=[2*inch, 4*inch])
-        tabla.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (0, -1), colors.grey),
-            ('TEXTCOLOR', (0, 0), (0, -1), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-            ('BACKGROUND', (1, 0), (1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        
-        story.append(tabla)
-        
-        # Diagnósticos
-        # ...
-        
-        # Construir PDF
-        doc.build(story)
-```
+**Funciones clave**:
+- Construcción de informe clínico en memoria
+- Renderizado tabular de síntomas, alergias y diagnósticos
+- Entrega del PDF al frontend para descarga inmediata
 
 ---
 
@@ -950,6 +687,154 @@ def enviar_correo(destinatario, asunto, cuerpo):
 
 ---
 
+## Decisiones de Diseño
+
+### 1. Migración de Aplicación de Escritorio a Arquitectura Web
+
+**Decisión**: Evolucionar de una interfaz de escritorio a Flask + React (web).
+
+**Contexto**: El sistema originalmente se diseñó como aplicación local de escritorio. A medida que el proyecto evolucionó se identificó la necesidad de una interfaz más moderna, accesible desde el navegador y con mayor capacidad de expansión.
+
+**Alternativas evaluadas**:
+
+| Opción | Pros | Contras |
+|--------|------|---------|
+| Interfaz local tradicional (mantener) | Sin infraestructura web adicional | UI limitada y acoplada al entorno local |
+| Flask + Jinja2 | Un solo lenguaje, simple | Sin componentes reutilizables, recarga completa por acción |
+| **Flask + React** ✓ | SPA moderna, UI reactiva, separación clara | Requiere npm + servidor Python corriendo simultáneamente |
+| Django + React | Más robusto para producción | Overhead excesivo para el alcance del proyecto |
+
+**Resultado**: La separación backend (Flask REST API en `backend/app.py`) / frontend (React SPA en `frontend/`) permite mantener el motor Prolog intacto y evolucionar la interfaz de usuario de forma independiente. El backend expone únicamente JSON; la lógica de presentación reside completamente en React.
+
+---
+
+### 2. Prolog Como Motor de Inferencia Simbólica
+
+**Decisión**: Usar SWI-Prolog en lugar de aprendizaje automático o reglas codificadas en Python.
+
+**Razones principales**:
+- **Interpretabilidad**: Cada diagnóstico puede rastrearse hasta las reglas lógicas exactas que lo generaron, lo que es crítico en un contexto médico.
+- **Determinismo**: El mismo conjunto de síntomas produce siempre el mismo resultado, sin variaciones estadísticas.
+- **Base de conocimiento separada del código**: Un médico puede revisar y editar `medilogic.pl` sin tocar el código Python ni reiniciar el servidor.
+- **Extensibilidad sin reentrenamiento**: Agregar una nueva enfermedad es añadir hechos al `.pl`; no requiere reentrenar modelo alguno.
+
+**Trade-offs asumidos**:
+- Requiere instalación de SWI-Prolog en el servidor de despliegue.
+- No aprende automáticamente de nuevos casos clínicos.
+- Limitaciones con caracteres especiales UTF-8 al construir consultas dinámicas desde Python.
+
+---
+
+### 3. Declaraciones `:- dynamic` en la Base de Conocimiento
+
+**Decisión**: Todos los predicados principales se declaran dinámicos al inicio de `medilogic.pl`.
+
+**Problema resuelto**: Sin `:- dynamic`, SWI-Prolog lanzaba `permission_error(modify, static_procedure)` al intentar insertar o eliminar hechos en tiempo de ejecución desde el módulo administrador.
+
+**Implementación**:
+```prolog
+:- dynamic sintoma/4.
+:- dynamic enfermedad/6.
+:- dynamic medicamento/5.
+:- dynamic presenta_sintoma/3.
+:- dynamic trata_enfermedad/3.
+:- dynamic contraindicado/3.
+```
+
+**Consecuencia de diseño**: Al declarar todos los predicados como dinámicos desde el inicio, el sistema puede modificar la base de conocimiento en caliente mediante `assertz`/`retract` sin necesidad de recargar el archivo `.pl` completo entre operaciones CRUD.
+
+---
+
+### 4. Estrategia de Fusión para Carga de Archivos `.pl`
+
+**Decisión**: La carga de un archivo `.pl` externo fusiona (merge) predicados en lugar de reemplazar la base completa.
+
+**Contexto**: La primera implementación reemplazaba el archivo completo, eliminando todos los datos existentes al cargar un nuevo `.pl`.
+
+**Alternativas consideradas**:
+
+| Estrategia | Comportamiento | Riesgo |
+|-----------|----------------|--------|
+| Reemplazo completo | El nuevo `.pl` sustituye toda la base | Pérdida irreversible de datos |
+| **Fusión (merge)** ✓ | Los IDs existentes se actualizan; los nuevos se insertan | Seguro, no destructivo |
+| Append puro | Solo inserta sin actualizar nunca | Genera predicados duplicados |
+
+**Lógica del endpoint `POST /api/admin/prolog/upload`**:
+1. Un parser con expresiones regulares extrae los predicados del archivo subido.
+2. Para cada predicado: si el ID ya existe en la base actual → lo actualiza; si no → lo inserta al final de su sección.
+3. El archivo `medilogic.pl` se persiste con el resultado combinado.
+
+---
+
+### 5. Diseño del API REST
+
+**Decisión**: API sin autenticación JWT (alcance MVP) con rutas agrupadas semánticamente por módulo.
+
+**Estructura de rutas**:
+```
+GET  /api/paciente/sintomas
+POST /api/paciente/diagnosticar
+GET  /api/paciente/pdf/<id>
+
+POST /api/admin/login
+GET  /api/admin/enfermedades
+POST /api/admin/enfermedades
+PUT  /api/admin/enfermedades/<id>
+DELETE /api/admin/enfermedades/<id>
+... (síntomas, medicamentos, relaciones)
+POST /api/admin/prolog/upload
+GET  /api/admin/prolog/export
+POST /api/admin/rpa/cargar
+POST /api/admin/rpa/enviar-correo
+```
+
+**Decisión sobre autenticación**:
+- **MVP**: Las credenciales se verifican en el backend; el estado de sesión se gestiona en memoria con Flask sessions.
+- **Razón**: El alcance del proyecto no requiere multiusuario ni tokens persistentes entre reinicios.
+- **Extensión futura recomendada**: Migrar a JWT (`flask-jwt-extended`) con una base de datos de usuarios (SQLite o PostgreSQL).
+
+---
+
+### 6. Interfaz de Usuario: Estética Clínica Diferenciada
+
+**Decisión**: Paleta de colores y componentes que comunican identidad médica y técnica, evitando plantillas SaaS genéricas.
+
+**Paleta seleccionada**:
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| Navy | `#0a2540` | Fondo hero, botones primarios, encabezados |
+| Teal | `#00b4d8` | Acento principal, highlights, hover states |
+| Green | `#06d6a0` | Módulo paciente, resultados, indicadores positivos |
+| Coral | `#ef476f` | Módulo administrador, alertas, acciones destructivas |
+| Dark terminal | `#0d1b2a` | Panel de código Prolog en la página de inicio |
+
+**Componentes de identidad visual**:
+- **Panel de código Prolog** en el hero: comunica al usuario la base tecnológica simbólica del sistema.
+- **Pills de estadísticas**: exponen de forma visible las métricas de la base de conocimiento (enfermedades, síntomas, medicamentos).
+- **Pasos numerados** con conectores: guía visual del flujo de diagnóstico en tres etapas.
+- **Cards con gradiente por módulo**: diferenciación visual clara entre el acceso de paciente y de administrador.
+
+**Razón del rediseño**: La interfaz original era indistinguible de plantillas SaaS genéricas. El diseño actual refleja la naturaleza clínica y el enfoque simbólico-técnico del sistema.
+
+---
+
+### 7. Generación de PDF en el Servidor
+
+**Decisión**: El PDF se genera en el backend (Flask + ReportLab), no en el cliente.
+
+**Alternativas consideradas**:
+
+| Opción | Ventaja | Desventaja |
+|--------|---------|------------|
+| **ReportLab (backend)** ✓ | Control total del formato, consistente en todos los navegadores | Requiere librería Python adicional |
+| jsPDF (frontend) | Sin carga al servidor | Formato limitado, difícil de estilizar con precisión |
+| Puppeteer / HTML→PDF | Usa HTML como fuente de verdad | Dependencia Node.js extra, overhead en servidor |
+
+**Resultado**: El endpoint `GET /api/paciente/pdf/<id>` devuelve el binario directamente como `application/pdf`. El frontend lo descarga creando un `Blob URL` temporal, sin abrir nuevas ventanas del navegador.
+
+---
+
 ## Extensión y Mantenimiento
 
 ### Agregar Nuevo Síntoma
@@ -1034,86 +919,6 @@ ajustar_por_edad(_, _, 1.0).  % Sin ajuste por defecto
 
 ---
 
-## Pruebas
-
-### Pruebas Unitarias (Python)
-
-```python
-import unittest
-from utils.prolog_engine import PrologEngine
-
-class TestPrologEngine(unittest.TestCase):
-    def setUp(self):
-        self.engine = PrologEngine()
-    
-    def test_obtener_sintomas(self):
-        sintomas = self.engine.obtener_sintomas()
-        self.assertIsInstance(sintomas, list)
-        self.assertGreater(len(sintomas), 0)
-    
-    def test_diagnosticar_gripe(self):
-        sintomas = [('s1', 'Tos', 'severo'), 
-                    ('s2', 'Fiebre', 'moderado')]
-        alergias = []
-        cronicas = []
-        
-        diagnosticos = self.engine.diagnosticar(
-            sintomas, alergias, cronicas
-        )
-        
-        self.assertIsInstance(diagnosticos, list)
-        # Gripe debería estar en top 3
-        enfermedades = [d[1] for d in diagnosticos[:3]]
-        self.assertIn('e1', enfermedades)
-
-if __name__ == '__main__':
-    unittest.main()
-```
-
-### Pruebas de Integración
-
-```python
-def test_flujo_completo_diagnostico():
-    # 1. Inicializar sistema
-    app = MediLogicApp()
-    
-    # 2. Navegar a módulo paciente
-    app.mostrar_frame("Paciente")
-    
-    # 3. Simular selección de síntomas
-    modulo_paciente = app.frames["Paciente"]
-    modulo_paciente.sintomas_vars['s1'].set(True)
-    modulo_paciente.severidad_vars['s1'].set('severo')
-    
-    # 4. Realizar diagnóstico
-    modulo_paciente.realizar_diagnostico()
-    
-    # 5. Verificar resultados
-    assert len(modulo_paciente.historial_diagnosticos) > 0
-```
-
-### Pruebas en Prolog
-
-```prolog
-% test_medilogic.pl
-
-:- consult('medilogic.pl').
-
-test_calcular_afinidad :-
-    calcular_afinidad(e1, [(s1, severo), (s2, moderado)], Afinidad),
-    Afinidad > 70,
-    write('✓ Test calcular_afinidad pasado'), nl.
-
-test_medicamento_seguro :-
-    medic amento_seguro(m1, [], []),
-    write('✓ Test medicamento_seguro pasado'), nl.
-
-% Ejecutar todos los tests
-run_tests :-
-    test_calcular_afinidad,
-    test_medicamento_seguro,
-    write('✓ Todos los tests pasaron'), nl.
-```
 
 ### Casos de Prueba Clínicos
 
@@ -1128,23 +933,7 @@ Ver documento: `docs/casos_clinicos.pdf`
 
 ---
 
-## Apéndices
 
-### A. Glosario
-
-- **Afinidad**: Porcentaje de coincidencia entre síntomas del paciente y enfermedad
-- **Backtracking**: Mecanismo de Prolog para explorar soluciones alternativas
-- **Hecho**: Declaración verdadera en Prolog (predating sin cuerpo)
-- **Predicado**: Función/relación en Prolog
-- **Regla**: Predicado con condiciones (cuerpo)
-- **Unificación**: Proceso de igualar términos en Prolog
-
-### B. Referencias
-
-- SWI-Prolog Documentation: https://www.swi-prolog.org/pldoc/
-- PySwip GitHub: https://github.com/yuce/pyswip
-- Tkinter Documentation: https://docs.python.org/3/library/tkinter.html
-- ReportLab User Guide: https://www.reportlab.com/docs/reportlab-userguide.pdf
 
 ### C. Estructura de Archivos
 
@@ -1182,8 +971,7 @@ P1/
 
 **Versión**: 1.0  
 **Fecha**: Febrero 2026  
-**Autor**: [Tu Nombre]  
-**Licencia**: MIT
+**Autor**: Kewin Maslovy Patzan Tzun
 
 ---
 

@@ -85,6 +85,16 @@ export const obtenerArchivoProlog = () => api.get('/admin/prolog');
 
 export const guardarArchivoProlog = (data) => api.post('/admin/prolog', data);
 
+export const cargarArchivoProlog = (archivo) => {
+  const formData = new FormData();
+  formData.append('archivo', archivo);
+  return api.post('/admin/prolog/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
 // ==================== MÓDULO RPA ====================
 
 export const procesarRPA = (data) => api.post('/rpa/procesar', data);
